@@ -1,0 +1,6 @@
+compiler = "g++"
+std = "c++20"
+path = "src"
+files = ["main.cpp"]
+include = ""
+final = "main"
