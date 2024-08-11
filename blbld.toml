@@ -1,5 +1,5 @@
 compiler = "g++"
-std = "c++20"
+std = "c++20 -llua"
 path = "src"
 files = ["main.cpp"]
 include = ""
