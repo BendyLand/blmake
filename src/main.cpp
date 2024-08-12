@@ -12,13 +12,24 @@ int main()
         return 1;
     }
 
-    lua_getglobal(L, "full_build");
+    lua_getglobal(L, "simple_build");
 
     if (lua_istable(L, -1)) {
         // Access specific fields
         lua_getfield(L, -1, "compiler");
         const char* compiler = lua_tostring(L, -1);
         std::cout << "Compiler: " << compiler << std::endl;
+        lua_pop(L, 1);
+
+        lua_getfield(L, -1, "lang_exts");
+        if (lua_istable(L, -1)) {
+            lua_pushnil(L);
+            while (lua_next(L, -2) != 0) {
+                const char* ext = lua_tostring(L, -1);
+                std::cout << "Language extension: " << ext << std::endl;
+                lua_pop(L, 1);
+            }
+        }
         lua_pop(L, 1);
 
         lua_getfield(L, -1, "output");
