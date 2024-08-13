@@ -1,5 +1,7 @@
 # blmake
 
+*This project is in its very early stages and is non-functional as of 8/13/24*
+
 A simple and straightforward build tool for C/C++!
 
 ## About
