@@ -1,0 +1,8 @@
+Simple_build = {
+    compiler = "g++",                 -- e.g., "gcc"
+    files = {"main.cpp", "utils.cpp"},-- e.g., {"main.c", "utils.c"}
+    lang_exts = {"-std=c++20"},       -- e.g., {"-std=c++20"}
+    include_dirs = {""},              -- e.g., {"include/"}
+    output = "main",                  -- e.g., "myprogram"
+    debugging = "",                   -- e.g., "-g"
+}

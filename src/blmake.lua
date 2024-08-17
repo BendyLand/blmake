@@ -1,7 +1,7 @@
 Full_build = {
     compiler = "g++",                  -- The compiler to be used (e.g., "gcc", "clang")
-    files = {"main.cpp"},              -- A list of source files to compile
-    include_dirs = {""},               -- Directories for include files (optional)
+    files = {"main.cpp", "utils.cpp"}, -- A list of source files to compile
+    include_dirs = {"custom_example/include"}, -- Directories for include files (optional)
     preproc_opts = {""},               -- Preprocessor options (e.g., macros, include paths)
     linker_opts = {""},                -- Linker options (e.g., libraries, library paths)
     output = "main",                   -- Output file name (optional, defaults to a.out or similar)
@@ -27,22 +27,62 @@ Full_build = {
     tests = {""},                      -- e.g., {"test_suite1", "test_suite2"}
     documentation = "",                -- Directory or command for generating docs
     project_metadata = {               -- Optional: project name, version, author
-        name = "",
-        version = "",
-        author = "",
+        name = "BendyLand",
+        version = "0.0.1",
+        author = "Ben",
     },
     parallel_builds = true,            -- or specify number of jobs
     error_handling = "strict",         -- e.g. "strict", "warn"
     logging = ""                       -- Specify log file
 }
 
+Build = {
+    compiler = "g++",                 -- e.g., "gcc"
+    files = {"main.cpp", "utils.cpp"},-- e.g., {"main.c", "utils.c"}
+    lang_exts = {"-std=c++20"},       -- e.g., {"-std=c++20"}
+    include_dirs = {"custom_example/include"}, -- Directories for include files (optional)
+    preproc_opts = {""},               -- Preprocessor options (e.g., macros, include paths)
+    linker_opts = {""},                -- Linker options (e.g., libraries, library paths)
+    optimization = "",                 -- Optimization level (e.g., "-O2", "-Os")
+    debugging = "",                    -- Debugging options (e.g., "-g")
+    output = "main",                  -- e.g., "myprogram"
+    src_dir = "custom_example",        -- Source directory
+    out_dir = "custom_example/build",  -- Output directory
+}
+
+Test_build = {
+    compiler = "g++",                 -- e.g., "gcc"
+    files = {"main.cpp", "utils.cpp"},-- e.g., {"main.c", "utils.c"}
+    lang_exts = {"-std=c++20"},       -- e.g., {"-std=c++20"}
+    include_dirs = {"custom_example/include"}, -- Directories for include files (optional)
+    preproc_opts = {""},               -- Preprocessor options (e.g., macros, include paths)
+    linker_opts = {""},                -- Linker options (e.g., libraries, library paths)
+    optimization = "",                 -- Optimization level (e.g., "-O2", "-Os")
+    debugging = "",                    -- Debugging options (e.g., "-g")
+    output = "main",                  -- e.g., "myprogram"
+    debugging = "",                   -- e.g., "-g"
+    src_dir = "custom_example",        -- Source directory
+    out_dir = "custom_example/build",  -- Output directory
+    tests = {""},                      -- e.g., {"test_suite1", "test_suite2"}
+    post_build = {""},                 -- e.g., {"run_tests", "deploy"}
+    hooks = {                          -- e.g., {pre_build = "scripts/pre_build.sh"} 
+        pre_build = "custom_example/scripts/pre_build.sh"
+    }, 
+}
+
 Simple_build = {
     compiler = "g++",                 -- e.g., "gcc"
-    files = {"main.cpp"},             -- e.g., {"main.c", "utils.c"}
-    lang_exts = {"-std=c++20"},       -- e.g., {"main.c", "utils.c"}
+    files = {"main.cpp", "utils.cpp"},-- e.g., {"main.c", "utils.c"}
+    lang_exts = {"-std=c++20"},       -- e.g., {"-std=c++20"}
     include_dirs = {""},              -- e.g., {"include/"}
     output = "main",                  -- e.g., "myprogram"
     debugging = "",                   -- e.g., "-g"
+}
+
+Tiny_build = {
+    compiler = "g++"
+    files = {"main.cpp", "utils.cpp"}, 
+    output = "main" 
 }
 
 --[[

@@ -1,12 +1,12 @@
 -- This will be the file where I plan the logic using lua directly (before translating to C++)
 
-require "script"
+require "blmake"
 
 for key, val in pairs(Full_build) do
     print(key .. ": ")
     if type(val) == "table" then
-        for _, v in pairs(val) do
-            print(v)
+        for k, v in pairs(val) do
+            print(k .. ": " .. v)
         end
     else 
         print(val)

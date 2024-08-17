@@ -1,0 +1,19 @@
+Test_build = {
+    compiler = "g++",                 -- e.g., "gcc"
+    files = {"main.cpp", "utils.cpp"},-- e.g., {"main.c", "utils.c"}
+    lang_exts = {"-std=c++20"},       -- e.g., {"-std=c++20"}
+    include_dirs = {"custom_example/include"}, -- Directories for include files (optional)
+    preproc_opts = {""},               -- Preprocessor options (e.g., macros, include paths)
+    linker_opts = {""},                -- Linker options (e.g., libraries, library paths)
+    optimization = "",                 -- Optimization level (e.g., "-O2", "-Os")
+    debugging = "",                    -- Debugging options (e.g., "-g")
+    output = "main",                  -- e.g., "myprogram"
+    debugging = "",                   -- e.g., "-g"
+    src_dir = "custom_example",        -- Source directory
+    out_dir = "custom_example/build",  -- Output directory
+    tests = {""},                      -- e.g., {"test_suite1", "test_suite2"}
+    post_build = {""},                 -- e.g., {"run_tests", "deploy"}
+    hooks = {                          -- e.g., {pre_build = "scripts/pre_build.sh"} 
+        pre_build = "custom_example/scripts/pre_build.sh"
+    }
+}

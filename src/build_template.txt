@@ -1,0 +1,13 @@
+Build = {
+    compiler = "g++",                 -- e.g., "gcc"
+    files = {"main.cpp", "utils.cpp"},-- e.g., {"main.c", "utils.c"}
+    lang_exts = {"-std=c++20"},       -- e.g., {"-std=c++20"}
+    include_dirs = {"custom_example/include"}, -- Directories for include files (optional)
+    preproc_opts = {""},               -- Preprocessor options (e.g., macros, include paths)
+    linker_opts = {""},                -- Linker options (e.g., libraries, library paths)
+    optimization = "",                 -- Optimization level (e.g., "-O2", "-Os")
+    debugging = "",                    -- Debugging options (e.g., "-g")
+    output = "main",                  -- e.g., "myprogram"
+    src_dir = "custom_example",        -- Source directory
+    out_dir = "custom_example/build",  -- Output directory
+}
