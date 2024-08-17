@@ -11,7 +11,7 @@ Full_build = {
     platform_opts = {""},              -- Platform-specific options (e.g., architecture flags)
     profiling = "",                    -- Profiling options (e.g., "-pg")
     lto = "",                          -- Link-time optimization (e.g., "-flto")
-    lang_exts = {"-std=c++20"},        -- Language standard and extensions (e.g., "-std=c11", "-fno-exceptions")
+    lang_exts = {""},                  -- Language standard and extensions (e.g., "-std=c11", "-fno-exceptions")
     targets = {""},                    -- e.g., {"debug", "release"}
     dependencies = {""},               -- e.g., {"lib1", "lib2"}
     post_build = {""},                 -- e.g., {"run_tests", "deploy"}
@@ -67,7 +67,7 @@ Test_build = {
     post_build = {""},                 -- e.g., {"run_tests", "deploy"}
     hooks = {                          -- e.g., {pre_build = "scripts/pre_build.sh"} 
         pre_build = "custom_example/scripts/pre_build.sh"
-    }, 
+    }
 }
 
 Simple_build = {
@@ -80,7 +80,7 @@ Simple_build = {
 }
 
 Tiny_build = {
-    compiler = "g++",
+    compiler = "g++"
     files = {"main.cpp", "utils.cpp"}, 
     output = "main" 
 }
