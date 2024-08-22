@@ -1,7 +1,7 @@
-#include <lua.hpp>
 #include <iostream>
+#include "utils.hpp"
 
-int main() 
+int main()
 {
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
@@ -11,53 +11,26 @@ int main()
         std::cerr << "Failed to load config: " << lua_tostring(L, -1) << std::endl;
         return 1;
     }
-
-    lua_getglobal(L, "Full_build");
-
-    if (lua_istable(L, -1)) {
-        // Access specific fields
-        lua_getfield(L, -1, "compiler");
-        const char* compiler = lua_tostring(L, -1);
-        std::cout << "Compiler: " << compiler << std::endl;
-        lua_pop(L, 1);
-
-        lua_getfield(L, -1, "lang_exts");
-        if (lua_istable(L, -1)) {
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                const char* ext = lua_tostring(L, -1);
-                std::cout << "Language extension: " << ext << std::endl;
-                lua_pop(L, 1);
-            }
-        }
-        lua_pop(L, 1);
-
-        lua_getfield(L, -1, "output");
-        const char* output = lua_tostring(L, -1);
-        std::cout << "Output: " << output << std::endl;
-        lua_pop(L, 1);
-
-        // Example of iterating over 'files' table
-        lua_getfield(L, -1, "files");
-        if (lua_istable(L, -1)) {
-            lua_pushnil(L);  // First key
-            while (lua_next(L, -2) != 0) {
-                const char* file = lua_tostring(L, -1);
-                std::cout << "File: " << file << std::endl;
-                lua_pop(L, 1);  // Pop the value, keep the key for the next iteration
-            }
-        }
-        lua_pop(L, 1);  // Pop the 'files' table
+    if (check_table(L, "Full_build")) {
+        std::cout << "Reading Full_build table..." << std::endl;
+    }
+    else if (check_table(L, "Build")) {
+        std::cout << "Reading Build table..." << std::endl;
+    }
+    else if (check_table(L, "Simple_build")) {
+        std::cout << "Reading Simple_build table..." << std::endl;
+    }
+    else if (check_table(L, "Tiny_build")) {
+        std::cout << "Reading Tiny_build table..." << std::endl;
     }
 	else {
-		std::cout << "I'm in the else branch" << std::endl;
+		std::cout << "Could not find config table." << std::endl;
 	}
-
     lua_close(L);
     return 0;
 }
 
-/* 
+/*
 1. Pre-Build Hooks
 Command:
 bash custom_example/scripts/pre_build.sh
@@ -116,7 +89,6 @@ Purpose: Capture the output of the entire build process in a log file if logging
 Command:
 set -e  # Abort on any error
 Purpose: Depending on the error_handling field (e.g., "strict"), configure the build tool to stop execution on errors or to continue with warnings.
-
 
 Command Sequence Summary:
 1)  Run Pre-Build Hooks

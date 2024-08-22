@@ -84,3 +84,5 @@ Tiny_build = {
     files = {"main.cpp", "utils.cpp"}, 
     output = "main" 
 }
+
+Test_str = "This is a test string variable"
