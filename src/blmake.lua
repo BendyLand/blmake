@@ -2,24 +2,23 @@ Full_build = {
     compiler = "g++",                  -- The compiler to be used (e.g., "gcc", "clang")
     files = {"main.cpp", "utils.cpp"}, -- A list of source files to compile
     include_dirs = {"custom_example/include"}, -- Directories for include files (optional)
-    preproc_opts = {""},               -- Preprocessor options (e.g., macros, include paths)
-    linker_opts = {""},                -- Linker options (e.g., libraries, library paths)
+    preproc_opts = {"-DDEBUG"},               -- Preprocessor options (e.g., macros, include paths)
+    linker_opts = {"custom_example/libs"},                -- Linker options (e.g., libraries, library paths)
     output = "main",                   -- Output file name (optional, defaults to a.out or similar)
-    optimization = "",                 -- Optimization level (e.g., "-O2", "-Os")
-    debugging = "",                    -- Debugging options (e.g., "-g")
-    warnings = {""},                   -- Warning levels and options (e.g., "-Wall", "-Werror")
-    platform_opts = {""},              -- Platform-specific options (e.g., architecture flags)
-    profiling = "",                    -- Profiling options (e.g., "-pg")
-    lto = "",                          -- Link-time optimization (e.g., "-flto")
+    optimization = "-O2",                 -- Optimization level (e.g., "-O2", "-Os")
+    debugging = true,                    -- Debugging options (e.g., "-g")
+    warnings = {"all", "error"},       -- Warning levels and options (e.g., "-Wall", "-Werror")
+    platform_opts = {"-m64"},              -- Platform-specific options (e.g., architecture flags)
+    profiling = "-pg",                    -- Profiling options (e.g., "-pg")
+    lto = "-flto",                          -- Link-time optimization (e.g., "-flto")
     lang_exts = {"-std=c++20"},        -- Language standard and extensions (e.g., "-std=c11", "-fno-exceptions")
-    targets = {""},                    -- e.g., {"debug", "release"}
-    dependencies = {""},               -- e.g., {"lib1", "lib2"}
+    targets = {"debug"},                    -- e.g., {"debug", "release"}
+    dependencies = {"m", "pthread"},               -- e.g., {"lib1", "lib2"}
     post_build = {""},                 -- e.g., {"run_tests", "deploy"}
     build_type = "Debug",              -- or "Release"
     env_vars = {""},                   -- e.g., {CC = "gcc", CXX = "g++"}
     src_dir = "custom_example",        -- Source directory
     out_dir = "custom_example/build",  -- Output directory
-    conditional_compilation = {""},    -- e.g., {debug = "-DDEBUG", release = "-DNDEBUG"}
     hooks = {                          -- e.g., {pre_build = "scripts/pre_build.sh"} 
         pre_build = "custom_example/scripts/pre_build.sh"
     }, 
@@ -31,7 +30,6 @@ Full_build = {
         version = "0.0.1",
         author = "Ben",
     },
-    parallel_builds = true,            -- or specify number of jobs
     error_handling = "strict",         -- e.g. "strict", "warn"
     logging = ""                       -- Specify log file
 }

@@ -31,7 +31,6 @@ Full_build = {
         version = "0.0.1",
         author = "Ben",
     },
-    parallel_builds = true,            -- or specify number of jobs
     error_handling = "strict",         -- e.g. "strict", "warn"
     logging = ""                       -- Specify log file
 }
