@@ -1,5 +1,81 @@
 #include "utils.hpp"
 
+bool starts_with_any(std::string str, std::vector<std::string> items)
+{
+    for (std::string item : items) {
+        if (str.starts_with(item)) return true;
+    }
+    return false;
+}
+
+bool ends_with_any(std::string str, std::vector<std::string> items)
+{
+    for (std::string item : items) {
+        if (str.ends_with(item)) return true;
+    }
+    return false;
+}
+
+std::vector<std::string> chars(std::string original)
+{
+    std::vector<std::string> result;
+    std::string temp = "";
+    for (char c : original) {
+        temp += c;
+        result.push_back(temp);
+        temp = "";
+    }
+    return result;
+}
+
+std::vector<std::string> split(std::string original, std::string delim)
+{
+    std::vector<std::string> result;
+    std::string temp = "";
+    if (delim.size() == 0) return chars(original);
+    if (delim.size() == 1) {
+        temp += delim;
+        result.push_back(temp);
+        return result;
+    }
+    for (size_t i = 0; i < original.size(); i++) {
+        if (original[i] == delim[0]) {
+            for (size_t j = 0; j < delim.size(); j++) {
+                if (original[i+j] != delim[j]) goto Add;
+            }
+            result.push_back(temp);
+            temp = "";
+            continue;
+        }
+        Add:
+        temp += original[i];
+    }
+    if (temp.size() > 0) result.push_back(temp);
+    return result;
+}
+
+void ltrim(std::string& original, std::string cutset)
+{
+    std::vector<std::string> cut_chars = split(cutset, " ");
+    if (starts_with_any(original, cut_chars)) {
+        original.erase(0, 1);
+    }
+}
+
+void rtrim(std::string& original, std::string cutset)
+{
+    std::vector<std::string> cut_chars = split(cutset, " ");
+    while (ends_with_any(original, cut_chars)) {
+        original.erase(original.size()-1, 1);
+    }
+}
+
+void trim(std::string& original, std::string cutset)
+{
+    ltrim(original, cutset);
+    rtrim(original, cutset);
+}
+
 bool check_table(lua_State *L, const char *tableName)
 {
     lua_getglobal(L, tableName);
@@ -38,4 +114,33 @@ std::string get_table_commands(lua_State* L, std::string prefix)
         result = join(cmd, " ");
     }
     return result;
+}
+
+void sanitize(std::string& original)
+{
+    std::string sanitized;
+    for (char c : original) {
+        if (isalnum(c) || c == '.' || c == '/' || c == '-' || c == '_' || c == '+') {
+            sanitized += c;
+        }
+    }
+    original = sanitized;
+}
+
+bool is_valid_compiler(std::string compiler)
+{
+    std::vector<std::string> valid_comps = {"gcc", "g++", "clang", "msvc"};
+    for (std::string comp : valid_comps) {
+        if (compiler.find(comp) != std::string::npos) return true;
+    }
+    return false;
+}
+
+void print_valid_compilers()
+{
+    std::vector<std::string> valid_comps = {"gcc", "g++", "clang", "msvc"};
+    std::cout << "Valid compilers:" << std::endl;
+    for (std::string comp : valid_comps) {
+        std::cout << comp << std::endl;
+    }
 }

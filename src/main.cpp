@@ -1,6 +1,8 @@
 #include <iostream>
 #include "utils.hpp"
 
+std::string construct_full_build_command(lua_State* L);
+
 int main()
 {
     lua_State* L = luaL_newstate();
@@ -12,134 +14,8 @@ int main()
         return 1;
     }
     if (check_table(L, "Full_build")) {
-        std::string command = "";
-        lua_getglobal(L, "Full_build");
-        lua_getfield(L, -1, "compiler");
-        if (lua_isstring(L, -1)) {
-            std::string comp = lua_tostring(L, -1);
-            command += comp;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "preproc_opts");
-        if (lua_istable(L, -1)) {
-            std::string cmd = get_table_commands(L, "");
-            command += " " + cmd;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "lang_exts");
-        if (lua_istable(L, -1)) {
-            std::string cmd = get_table_commands(L, "");
-            command += " " + cmd;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "optimization");
-        if (lua_isstring(L, -1)) {
-            std::string optimization = lua_tostring(L, -1);
-            if (optimization.size() > 0) {
-                command += " " + optimization;
-            }
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "profiling");
-        if (lua_isstring(L, -1)) {
-            std::string optimization = lua_tostring(L, -1);
-            if (optimization.size() > 0) {
-                command += " " + optimization;
-            }
-            lua_pop(L, 1);
-        }
-        if (lua_isstring(L, -1)) {
-            std::string optimization = lua_tostring(L, -1);
-            if (optimization.size() > 0) {
-                command += " " + optimization;
-            }
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "platform_opts");
-        if (lua_istable(L, -1)) {
-            std::string cmd = get_table_commands(L, "");
-            command += " " + cmd;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "include_dirs");
-        if (lua_istable(L, -1)) {
-            std::string cmd = get_table_commands(L, "-I");
-            command += " " + cmd;
-            lua_pop(L, 1);
-        }
-        std::string prefix = "";
-        lua_getfield(L, -1, "src_dir");
-        if (lua_isstring(L, -1)) {
-            std::string src_dir = lua_tostring(L, -1);
-            prefix = src_dir;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "files");
-        if (lua_istable(L, -1)) {
-            if (prefix.size() > 0) prefix += "/";
-            std::string cmd = get_table_commands(L, prefix);
-            command += " " + cmd;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "lto");
-        if (lua_isstring(L, -1)) {
-            std::string lto = lua_tostring(L, -1);
-            if (lto.size() > 0) {
-                command += " " + lto;
-            }
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "linker_opts");
-        if (lua_istable(L, -1)) {
-            std::string linker_opts = get_table_commands(L, "-L");
-            command += " " + linker_opts;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "dependencies");
-        if (lua_istable(L, -1)) {
-            std::string deps = get_table_commands(L, "-l");
-            command += " " + deps;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "warnings");
-        if (lua_istable(L, -1)) {
-            std::string warnings = get_table_commands(L, "-W");
-            command += " " + warnings;
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "debugging");
-        if (lua_isboolean(L, -1)) {
-            bool debugging = lua_toboolean(L, -1);
-            if (debugging) {
-                command += " -g";
-            }
-            lua_pop(L, 1);
-        }
-        std::string output = "";
-        lua_getfield(L, -1, "out_dir");
-        if (lua_isstring(L, -1)) {
-            std::string out_dir = lua_tostring(L, -1);
-            if (out_dir.size() > 0) {
-                output += out_dir + "/";
-            }
-            lua_pop(L, 1);
-        }
-        lua_getfield(L, -1, "output");
-        if (lua_isstring(L, -1)) {
-            std::string out = lua_tostring(L, -1);
-            if (out.size() > 0) {
-                output += out; 
-            }
-            lua_pop(L, 1);
-        }
-        if (output.size() > 0) {
-            command += " -o " + output;
-        }
+        std::string command = construct_full_build_command(L);
         std::cout << command << std::endl;
-        /*  
-        Aim to recreate:
-        g++ -DDEBUG -std=c++20 -O2 -pg -m64 -Icustom_example/include custom_example/main.cpp custom_example/utils.cpp -flto -Lcustom_example/libs -lm -lpthread -Wall -Werror -g -o custom_example/build/main
-        */
     }
     else if (check_table(L, "Build")) {
         std::cout << "Reading Build table..." << std::endl;
@@ -155,6 +31,149 @@ int main()
 	}
     lua_close(L);
     return 0;
+}
+
+std::string construct_full_build_command(lua_State* L)
+{
+    std::string command = "";
+    lua_getglobal(L, "Full_build");
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "preproc_opts");
+    if (lua_istable(L, -1)) {
+        std::string preproc_opts = get_table_commands(L, "");
+        sanitize(preproc_opts);
+        command += " " + preproc_opts;
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "lang_exts");
+    if (lua_istable(L, -1)) {
+        std::string lang_exts = get_table_commands(L, "");
+        sanitize(lang_exts);
+        command += " " + lang_exts;
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "optimization");
+    if (lua_isstring(L, -1)) {
+        std::string optimization = lua_tostring(L, -1);
+        sanitize(optimization);
+        if (optimization.size() > 0) {
+            command += " " + optimization;
+        }
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "profiling");
+    if (lua_isstring(L, -1)) {
+        std::string profiling = lua_tostring(L, -1);
+        sanitize(profiling);
+        if (profiling.size() > 0) {
+            command += " " + profiling;
+        }
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "platform_opts");
+    if (lua_istable(L, -1)) {
+        std::string platform_opts = get_table_commands(L, "");
+        sanitize(platform_opts);
+        command += " " + platform_opts;
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "include_dirs");
+    if (lua_istable(L, -1)) {
+        std::string include_dirs = get_table_commands(L, "-I");
+        sanitize(include_dirs);
+        command += " " + include_dirs;
+        lua_pop(L, 1);
+    }
+    std::string prefix = "";
+    lua_getfield(L, -1, "src_dir");
+    if (lua_isstring(L, -1)) {
+        std::string src_dir = lua_tostring(L, -1);
+        sanitize(src_dir);
+        prefix = src_dir;
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "files");
+    if (lua_istable(L, -1)) {
+        if (prefix.size() > 0) prefix += "/";
+        std::string files = get_table_commands(L, prefix);
+        sanitize(files);
+        command += " " + files;
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "lto");
+    if (lua_isstring(L, -1)) {
+        std::string lto = lua_tostring(L, -1);
+        sanitize(lto);
+        if (lto.size() > 0) {
+            command += " " + lto;
+        }
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "linker_opts");
+    if (lua_istable(L, -1)) {
+        std::string linker_opts = get_table_commands(L, "-L");
+        sanitize(linker_opts);
+        command += " " + linker_opts;
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "dependencies");
+    if (lua_istable(L, -1)) {
+        std::string dependencies = get_table_commands(L, "-l");
+        sanitize(dependencies);
+        command += " " + dependencies;
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "warnings");
+    if (lua_istable(L, -1)) {
+        std::string warnings = get_table_commands(L, "-W");
+        sanitize(warnings);
+        command += " " + warnings;
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "debugging");
+    if (lua_isboolean(L, -1)) {
+        bool debugging = lua_toboolean(L, -1);
+        if (debugging) {
+            command += " -g";
+        }
+        lua_pop(L, 1);
+    }
+    std::string output = "";
+    lua_getfield(L, -1, "out_dir");
+    if (lua_isstring(L, -1)) {
+        std::string out_dir = lua_tostring(L, -1);
+        sanitize(out_dir);
+        if (out_dir.size() > 0) {
+            output += out_dir + "/";
+        }
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "output");
+    if (lua_isstring(L, -1)) {
+        std::string out = lua_tostring(L, -1);
+        sanitize(out);
+        if (out.size() > 0) {
+            output += out; 
+        }
+        lua_pop(L, 1);
+    }
+    if (output.size() > 0) {
+        command += " -o " + output;
+    }
+    return command;
 }
 
 /*

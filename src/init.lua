@@ -56,6 +56,9 @@ function construct_full_compilation_command(tbl)
     if tbl.debugging then
         result = result .. " -g"
     end
+    for _, flag in ipairs(tbl.custom_flags) do
+        result = string.format("%s -f%s", result, warning)
+    end
     output = string.format("%s/%s", tbl.out_dir, tbl.output)
     result = string.format("%s -o %s", result, output)
     return result

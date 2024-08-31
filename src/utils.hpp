@@ -7,3 +7,14 @@
 bool check_table(lua_State *L, const char* tableName);
 std::string get_table_commands(lua_State* L, std::string prefix);
 std::string join(std::vector<std::string> vec, std::string delim);
+void sanitize(std::string& original);
+void ltrim(std::string& original, std::string cutset);
+void rtrim(std::string& original, std::string cutset);
+void trim(std::string& original, std::string cutset);
+std::vector<std::string> split(std::string original, std::string delim);
+std::vector<std::string> chars(std::string original);
+bool starts_with_any(std::string str, std::vector<std::string> items);
+bool ends_with_any(std::string str, std::vector<std::string> items);
+bool is_valid_compiler(std::string compiler);
+void print_valid_compilers();
+
