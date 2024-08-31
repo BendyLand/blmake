@@ -1,5 +1,5 @@
 Tiny_build = {
-    compiler = "g++"
+    compiler = "g++",
     files = {"main.cpp", "utils.cpp"}, 
     output = "main" 
 }

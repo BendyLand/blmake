@@ -1,6 +1,6 @@
 compiler = "g++"
 std = "c++20 -llua"
 path = "src"
-files = ["main.cpp", "utils.cpp"]
+files = ["main.cpp", "utils.cpp", "build.cpp"]
 include = ""
 final = "main"

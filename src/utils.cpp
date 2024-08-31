@@ -120,10 +120,11 @@ void sanitize(std::string& original)
 {
     std::string sanitized;
     for (char c : original) {
-        if (isalnum(c) || c == '.' || c == '/' || c == '-' || c == '_' || c == '+') {
+        if (isalnum(c) || c == '.' || c == '/' || c == '-' || c == '_' || c == '+' || c == ' ') {
             sanitized += c;
         }
     }
+    trim(sanitized, " ");
     original = sanitized;
 }
 
