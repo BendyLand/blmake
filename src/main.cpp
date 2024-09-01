@@ -1,11 +1,14 @@
 #include <iostream>
 #include "utils.hpp"
 #include "build.hpp"
+#include "os.hpp"
 
 int main()
 {
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
+    std::string os = os_specific::detect_os();
+    std::cout << "OS: " << os << std::endl;
 
     // Load and run the Lua configuration file
     if (luaL_loadfile(L, "src/blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
