@@ -3,7 +3,7 @@
 std::string os_specific::detect_os() 
 {
     std::string result;
-    #ifdef OS_WINDOWS
+    #if defined(OS_WINDOWS)
         result = "Windows";
     #elif defined(OS_MACOS)
         result = "MacOS";
