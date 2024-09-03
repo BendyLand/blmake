@@ -3,7 +3,10 @@
 #include <lua.hpp>
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <string>
 
+size_t copy_template_file(const std::string& from, const std::string& to);
 bool check_table(lua_State *L, const char* tableName);
 std::string get_table_commands(lua_State* L, std::string prefix);
 std::string join(std::vector<std::string> vec, std::string delim);

@@ -1,24 +1,5 @@
 #include "gen.hpp"
 
-size_t copy_template_file(const std::string& templateFilePath, const std::string& newFilePath) 
-{
-    std::ifstream templateFile(templateFilePath);  
-    if (!templateFile.is_open()) {
-        std::cerr << "Error opening template file: " << templateFilePath << std::endl;
-        return 1;
-    }
-    std::string fileContents((std::istreambuf_iterator<char>(templateFile)), std::istreambuf_iterator<char>());
-    templateFile.close();  
-    std::ofstream newFile(newFilePath);  
-    if (!newFile.is_open()) {
-        std::cerr << "Error creating new file: " << newFilePath << std::endl;
-        return 1;
-    }
-    newFile << fileContents;  
-    newFile.close();  
-    return 0;
-}
-
 size_t generate_full_build()
 {
     int err = copy_template_file("src/templates/full_build_template.txt", "./blmake.lua");
