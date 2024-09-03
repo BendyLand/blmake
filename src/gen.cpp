@@ -115,6 +115,8 @@ size_t handle_template_generation(int argc, char** argv)
     }
     else {
         std::cout << "Generating Full_build in blmake.lua..." << std::endl;
+        size_t err = generate_full_build();
+        if (err) exit(1);
     }
     return 0;
 }
