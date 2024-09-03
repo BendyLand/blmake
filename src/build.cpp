@@ -520,3 +520,30 @@ std::string construct_test_build_command(lua_State* L)
     }
     return command;
 }
+
+void handle_command_construction(lua_State* L)
+{
+    if (check_table(L, "Full_build")) {
+        std::string command = construct_full_build_command(L);
+        std::cout << command << std::endl;
+    }
+    else if (check_table(L, "Build")) {
+        std::string command = construct_build_command(L);
+        std::cout << command << std::endl;
+    }
+    else if (check_table(L, "Simple_build")) {
+        std::string command = construct_simple_build_command(L);
+        std::cout << command << std::endl;
+    }
+    else if (check_table(L, "Tiny_build")) {
+        std::string command = construct_tiny_build_command(L);
+        std::cout << command << std::endl;
+    }
+    else if (check_table(L, "Test_build")) {
+        std::string command = construct_test_build_command(L);
+        std::cout << command << std::endl;
+    }
+	else {
+        std::cerr << "No valid config tables found." << std::endl;
+	}
+}
