@@ -1,5 +1,14 @@
 #include "utils.hpp"
 
+std::string to_lower(std::string str)
+{
+    std::string result = "";
+    for (char c : str) {
+        result += tolower(c);
+    }
+    return result;
+}
+
 bool starts_with_any(std::string str, std::vector<std::string> items)
 {
     for (std::string item : items) {
@@ -144,4 +153,13 @@ void print_valid_compilers()
     for (std::string comp : valid_comps) {
         std::cout << comp << std::endl;
     }
+}
+
+void print_help_menu()
+{
+    std::cout << \
+    "Welcome to the blmake help menu!\n\n" << \
+    "Usage:\nblmake <command> <args>\n\n" << \
+    "The available commands are:\n" << \
+    "gen <config_type> (full, build, simple, tiny, test)\nhelp\n" << std::endl;
 }

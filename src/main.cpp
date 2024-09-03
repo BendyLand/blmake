@@ -2,13 +2,25 @@
 #include "utils.hpp"
 #include "build.hpp"
 #include "os.hpp"
+#include "gen.hpp"
 
-int main()
+int main(int argc, char** argv)
 {
+    if (argc > 1) {
+        std::string gen = "gen";
+        std::string help = "help";
+        if (argv[1] == gen) {
+            size_t err = handle_template_generation(argc, argv);
+            if (err) return 1;
+            return 0;
+        }
+        else if (argv[1] == help) {
+            print_help_menu();
+            return 0;
+        }
+    }
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
-    std::string os = os_specific::detect_os();
-    std::cout << "OS: " << os << std::endl;
 
     // Load and run the Lua configuration file
     if (luaL_loadfile(L, "src/blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
