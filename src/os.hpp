@@ -1,8 +1,9 @@
 #pragma once
 
 #include <iostream>
-#include <unistd.h>
 #include <vector>
+#include <unistd.h>
+#include "utils.hpp"
 
 #if defined(_WIN32) || defined(_WIN64)
     #define OS_WINDOWS
@@ -27,9 +28,11 @@
     #include <Windows.h>
 #endif
 
-namespace os_specific 
+class OS
 {
+public:
     std::string detect_os();
-    int run_command_unix(const std::vector<std::string>& args);
-    int run_command(const std::vector<std::string>& args);
-}
+    static int run_command(std::string& args);
+private: 
+    static int run_command_unix(const std::vector<std::string>& args);
+};

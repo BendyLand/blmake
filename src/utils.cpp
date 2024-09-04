@@ -1,5 +1,21 @@
 #include "utils.hpp"
 
+std::vector<std::string> split(std::string str, char delim)
+{
+    std::vector<std::string> result;
+    std::string temp = "";
+    for (char c : str) {
+        if (c == delim) {
+            result.push_back(temp);
+            temp = "";
+            continue;
+        }
+        temp += c;
+    }
+    if (temp.size() > 0) result.push_back(temp);
+    return result;
+}
+
 size_t copy_template_file(const std::string& templateFilePath, const std::string& newFilePath) 
 {
     std::ifstream templateFile(templateFilePath);  
@@ -148,7 +164,7 @@ void sanitize(std::string& original)
 {
     std::string sanitized;
     for (char c : original) {
-        if (isalnum(c) || c == '.' || c == '/' || c == '-' || c == '_' || c == '+' || c == ' ') {
+        if (isalnum(c) || c == '.' || c == '/' || c == '-' || c == '_' || c == '+' || c == ' ' || c == '=') {
             sanitized += c;
         }
     }

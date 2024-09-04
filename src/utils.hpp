@@ -22,3 +22,4 @@ bool is_valid_compiler(std::string compiler);
 void print_valid_compilers();
 std::string to_lower(std::string str);
 void print_help_menu();
+std::vector<std::string> split(std::string str, char c);

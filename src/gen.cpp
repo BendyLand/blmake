@@ -58,33 +58,28 @@ size_t generate_test_build()
 size_t handle_template_generation(int argc, char** argv)
 {
     if (argc > 2) {
-        std::string full = "full";
-        std::string build = "build";
-        std::string simple = "simple";
-        std::string tiny = "tiny";
-        std::string test = "test";
         std::string check = to_lower(argv[2]);
-        if (check == full) {
+        if (check == std::string("full")) {
             std::cout << "Generating Full_build in blmake.lua..." << std::endl;
             size_t err = generate_full_build();
             if (err) exit(1);
         }
-        else if (check == build) {
+        else if (check == std::string("build")) {
             std::cout << "Generating Build in blmake.lua..." << std::endl;
             size_t err = generate_build();
             if (err) exit(1);
         }
-        else if (check == simple) {
+        else if (check == std::string("simple")) {
             std::cout << "Generating Simple_build in blmake.lua..." << std::endl;
             size_t err = generate_simple_build();
             if (err) exit(1);
         }
-        else if (check == tiny) {
+        else if (check == std::string("tiny")) {
             std::cout << "Generating Tiny_build in blmake.lua..." << std::endl;
             size_t err = generate_tiny_build();
             if (err) exit(1);
         }
-        else if (check == test) {
+        else if (check == std::string("test")) {
             std::cout << "Generating Test_build in blmake.lua..." << std::endl;
             size_t err = generate_test_build();
             if (err) exit(1);

@@ -1,6 +1,6 @@
 #include "os.hpp"
 
-std::string os_specific::detect_os() 
+std::string OS::detect_os() 
 {
     std::string result;
     #if defined(OS_WINDOWS)
@@ -19,12 +19,12 @@ std::string os_specific::detect_os()
     return result;
 }
 
-int os_specific::run_command_unix(const std::vector<std::string>& args)
+int OS::run_command_unix(const std::vector<std::string>& args)
 {
     // Convert std::vector<std::string> to an array of char* required by execvp
     std::vector<char*> cargs;
-    for (auto& arg : args) {
-        cargs.push_back(const_cast<char*>(arg.c_str()));
+    for (std::string arg : args) {
+        cargs.push_back(strdup(arg.c_str()));
     }
     cargs.push_back(nullptr); // execvp expects a null-terminated array
 
@@ -54,11 +54,12 @@ int os_specific::run_command_unix(const std::vector<std::string>& args)
     }
 }
 
-int os_specific::run_command(const std::vector<std::string>& args) 
+int OS::run_command(std::string& arg) 
 {
     int result;
+    std::vector<std::string> args = split(arg, ' ');
     #if defined(OS_UNIX_LIKE)
-        result = os_specific::run_command_unix(args);
+        result = OS::run_command_unix(args);
     #else
         std::cerr << "`run_command` is not implemented for Windows yet." << std::endl;
         result = -1;

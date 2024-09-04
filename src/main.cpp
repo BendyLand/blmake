@@ -4,17 +4,17 @@
 #include "os.hpp"
 #include "gen.hpp"
 
+//todo: manually check for and add compiler to PATH 
+
 int main(int argc, char** argv)
 {
     if (argc > 1) {
-        std::string gen = "gen";
-        std::string help = "help";
-        if (argv[1] == gen) {
+        if (argv[1] == std::string("gen")) {
             size_t err = handle_template_generation(argc, argv);
             if (err) return 1;
             return 0;
         }
-        else if (argv[1] == help) {
+        else if (argv[1] == std::string("help")) {
             print_help_menu();
             return 0;
         }
@@ -27,8 +27,14 @@ int main(int argc, char** argv)
         std::cerr << "Failed to load config: " << lua_tostring(L, -1) << std::endl;
         return 1;
     }
-    handle_command_construction(L);
+    std::string command = handle_command_construction(L);
+    std::cout << command << std::endl;
     lua_close(L);
+
+    OS::run_command(command);
+
+    std::cout << "Compiled successfully!" << std::endl;
+
     return 0;
 }
 
