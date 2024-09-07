@@ -1,6 +1,6 @@
 # blmake
 
-*This project is in its very early stages and is non-functional as of 8/13/24*
+*This project is in its fairly early stages as of Sep. 7, 2024. Functionality is limited and unpredictable.*
 
 A simple and straightforward build tool for C/C++!
 
@@ -20,5 +20,6 @@ A simple and straightforward build tool for C/C++!
  - `blmake` (this project):
      - The largest of the build tools.
      - Use for projects that would normally warrant the usage of something like CMake.
-     - *Commands TBD*
-     - Rather than defining its own custom syntax, `blmake` expects a lua file called "blmake.lua".
+     - Rather than defining its own custom syntax, `blmake` will expect a lua file called "blmake.lua".
+     - There [will be] commands to generate the config file and run various parts of the build process.
+     - *Actual commands TBD*
