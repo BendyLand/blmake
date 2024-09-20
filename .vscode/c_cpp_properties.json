@@ -4,7 +4,9 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/bin/"
+                "/usr/local/bin/",
+                "/usr/bin/",
+                "/usr/include/lua5.3"
             ],
             "macFrameworkPath": [
                 "/System/Library/Frameworks",

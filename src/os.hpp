@@ -19,6 +19,11 @@
     #define OS_UNKNOWN
 #endif
 
+#if defined(OS_LINUX)
+    #include <sys/wait.h>
+    #include <string.h>
+#endif
+
 #if defined(OS_MACOS) || defined(OS_LINUX) || defined(OS_UNIX) || defined(OS_FREEBSD)
     #define OS_UNIX_LIKE
 #endif 

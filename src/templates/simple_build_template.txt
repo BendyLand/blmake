@@ -7,8 +7,8 @@ Simple_build = {
     compiler = "",      -- e.g., "gcc"
     files = {},         -- e.g., {"main.c", "utils.c"}
     lang_exts = {},     -- e.g., {"-std=c++20"}
-    include_dirs = {},  -- e.g., {"include/"}
-    dependencies = {},  -- e.g., {"include/"}
+    include_dirs = {},  -- e.g., {"./include/"}
+    dependencies = {},  -- e.g., {"m"} (for the math lib)
     output = "",        -- e.g., "myprogram"
-    debugging = true,   -- e.g., "-g"
+    debugging = true,   -- Will add "-g" if true.
 }

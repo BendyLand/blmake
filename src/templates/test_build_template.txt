@@ -9,13 +9,13 @@ Test_build = {
     files = {},         -- e.g., {"main.cpp", "utils.cpp"}
     lang_exts = {},     -- e.g., {"-std=c++20"}
     include_dirs = {},  -- Directories for include files (optional)
-    dependencies = {},  -- Directories for include files (optional)
+    dependencies = {},  -- libraries to link against (e.g., "m" for the math lib)
     preproc_opts = {},  -- Preprocessor options (e.g., macros, include paths)
     linker_opts = {},   -- Linker options (e.g., libraries, library paths)
     optimization = "",  -- Optimization level (e.g., "-O2", "-Os")
     warnings = {},      -- Warning levels and options (e.g., "-Wall", "-Werror")
     profiling = "",     -- Profiling options (e.g., "-pg")
-    debugging = true,   -- Debugging options (e.g., "-g")
+    debugging = true,   -- Will add "-g" if true.
     output = "",        -- e.g., "myprogram"
     src_dir = "",       -- Source directory
     out_dir = "",       -- Output directory

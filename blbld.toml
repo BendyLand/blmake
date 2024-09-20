@@ -2,5 +2,5 @@ compiler = "g++"
 std = "c++20 -llua"
 path = "src"
 files = ["main.cpp", "utils.cpp", "build.cpp", "os.cpp", "gen.cpp"]
-include = ""
+include = "/usr/include/lua5.3/"
 final = "main"

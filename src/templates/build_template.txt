@@ -8,11 +8,11 @@ Build = {
     files = {},        -- e.g., {"main.cpp", "utils.cpp"}
     lang_exts = {},    -- e.g., {"-std=c++20"}
     include_dirs = {}, -- Directories for include files (optional)
-    dependencies = {}, -- Preprocessor options (e.g., macros, include paths)
+    dependencies = {}, -- Dependencies (e.g., libraries, library paths)
     preproc_opts = {}, -- Preprocessor options (e.g., macros, include paths)
     linker_opts = {},  -- Linker options (e.g., "m" for the math lib)
     optimization = "", -- Optimization level (e.g., "-O2", "-Os")
-    debugging = true,  -- A BOOLEAN value indicating whether to include debugging info ("-g")
+    debugging = true,  -- Will add "-g" if true.
     build_type = "",   -- e.g., "Debug" or "Release"
     output = "",       -- e.g., "myprogram"
     src_dir = "",      -- Source directory
