@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo "Running the pre-build script!"
+echo "This is the shell script running!"

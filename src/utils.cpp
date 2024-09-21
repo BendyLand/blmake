@@ -1,5 +1,114 @@
 #include "utils.hpp"
 
+bool validate_script_ext(std::string path)
+{
+    bool result = false;
+    std::vector<std::string> valid_exts = {".sh", ".ps1", ".rb", ".py", ".lua"};
+    sanitize(path);
+    if (ends_with_any(path, valid_exts)) result = true;
+    return result;
+}
+
+bool ensure_executable(const char* scriptPath)
+{
+    // Check if the file is executable
+    if (access(scriptPath, X_OK) == 0) {
+        return true;
+    }
+    // File is not executable, attempt to add executable permission
+    if (chmod(scriptPath, S_IRWXU) == 0) {
+        return true;
+    }
+    std::cerr << "Failed to make the script executable." << std::endl;
+    return false;
+}
+
+std::string extract_pre_build_path(lua_State* L)
+{
+    std::string result = "";
+    if (check_table(L, "Full_build")) {
+        lua_getglobal(L, "Full_build");
+        lua_getfield(L, -1, "hooks");
+        if (lua_istable(L, -1)) {
+            lua_pushnil(L);
+            while (lua_next(L, -2) != 0) {
+                // Check if the key is a string
+                if (lua_isstring(L, -2)) {
+                    const char* key = lua_tostring(L, -2);
+                    if (strcmp(key, "pre_build") == 0) {
+                        if (lua_isstring(L, -1)) {
+                            result = lua_tostring(L, -1);
+                        }
+                    } 
+                }
+                lua_pop(L, 1); // Pop value, keep key for next iteration
+            }
+        }
+    }
+    else if (check_table(L, "Test_build")) {
+        lua_getglobal(L, "Test_build");
+        lua_getfield(L, -1, "hooks");
+        if (lua_istable(L, -1)) {
+            lua_pushnil(L);
+            while (lua_next(L, -2) != 0) {
+                // Check if the key is a string
+                if (lua_isstring(L, -2)) {
+                    const char* key = lua_tostring(L, -2);
+                    if (strcmp(key, "pre_build") == 0) {
+                        if (lua_isstring(L, -1)) {
+                            result = lua_tostring(L, -1);
+                        }
+                    } 
+                }
+                lua_pop(L, 1); // Pop value, keep key for next iteration
+            }
+        }
+    }
+    return result;
+}
+
+bool check_pre_build(lua_State* L)
+{
+    bool result = false;
+    if (check_table(L, "Full_build")) {
+        lua_getglobal(L, "Full_build");
+        lua_getfield(L, -1, "hooks");
+        if (lua_istable(L, -1)) {
+            std::string path = "";
+            lua_pushnil(L);
+            while (lua_next(L, -2) != 0) {
+                // Check if the key is a string
+                if (lua_isstring(L, -2)) {
+                    const char* key = lua_tostring(L, -2);
+                    if (strcmp(key, "pre_build") == 0) {
+                        result = true;
+                    } 
+                }
+                lua_pop(L, 1); // Pop value, keep key for next iteration
+            }
+        }
+    }
+    else if (check_table(L, "Test_build")) {
+        lua_getglobal(L, "Test_build");
+        lua_getfield(L, -1, "hooks");
+        if (lua_istable(L, -1)) {
+            std::string path = "";
+            lua_pushnil(L);
+            while (lua_next(L, -2) != 0) {
+                // Check if the key is a string
+                if (lua_isstring(L, -2)) {
+                    const char* key = lua_tostring(L, -2);
+                    if (strcmp(key, "pre_build") == 0) {
+                        result = true;
+                    } 
+                }
+                lua_pop(L, 1); // Pop value, keep key for next iteration
+            }
+        }
+    }
+    return result;
+}
+
 std::vector<std::string> split(std::string str, char delim)
 {
     std::vector<std::string> result;
@@ -16,22 +125,22 @@ std::vector<std::string> split(std::string str, char delim)
     return result;
 }
 
-size_t copy_template_file(const std::string& templateFilePath, const std::string& newFilePath) 
+size_t copy_template_file(const std::string& templateFilePath, const std::string& newFilePath)
 {
-    std::ifstream templateFile(templateFilePath);  
+    std::ifstream templateFile(templateFilePath);
     if (!templateFile.is_open()) {
         std::cerr << "Error opening template file: " << templateFilePath << std::endl;
         return 1;
     }
     std::string fileContents((std::istreambuf_iterator<char>(templateFile)), std::istreambuf_iterator<char>());
-    templateFile.close();  
-    std::ofstream newFile(newFilePath);  
+    templateFile.close();
+    std::ofstream newFile(newFilePath);
     if (!newFile.is_open()) {
         std::cerr << "Error creating new file: " << newFilePath << std::endl;
         return 1;
     }
-    newFile << fileContents;  
-    newFile.close();  
+    newFile << fileContents;
+    newFile.close();
     return 0;
 }
 
@@ -142,15 +251,15 @@ std::string join(std::vector<std::string> vec, std::string delim)
     return result;
 }
 
-std::string get_table_commands(lua_State* L, std::string prefix) 
+std::string get_table_commands(lua_State* L, std::string prefix)
 {
-    std::string result = ""; 
+    std::string result = "";
     if (lua_istable(L, -1)) {
         std::vector<std::string> cmd;
-        lua_pushnil(L); 
+        lua_pushnil(L);
         while (lua_next(L, -2) != 0) {
             if (lua_isstring(L, -1)) {
-                std::string temp = prefix + lua_tostring(L, -1); 
+                std::string temp = prefix + lua_tostring(L, -1);
                 cmd.push_back(temp);
             }
             lua_pop(L, 1); // Pop value, keep key for next iteration

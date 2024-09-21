@@ -1,5 +1,18 @@
 #include "gen.hpp"
 
+int handle_cl_args(int argc, char** argv)
+{
+    if (argv[1] == std::string("gen")) {
+        size_t err = handle_template_generation(argc, argv);
+        if (err) return 1;
+        return 0;
+    }
+    else if (argv[1] == std::string("help")) {
+        print_help_menu();
+        return 0;
+    }
+}
+
 size_t generate_full_build()
 {
     int err = copy_template_file("src/templates/full_build_template.txt", "./blmake.lua");

@@ -5,6 +5,9 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <cstdlib>
+#include <unistd.h>
+#include <sys/stat.h>
 
 size_t copy_template_file(const std::string& from, const std::string& to);
 bool check_table(lua_State *L, const char* tableName);
@@ -23,3 +26,7 @@ void print_valid_compilers();
 std::string to_lower(std::string str);
 void print_help_menu();
 std::vector<std::string> split(std::string str, char c);
+bool check_pre_build(lua_State* L);
+bool ensure_executable(const char* scriptPath);
+std::string extract_pre_build_path(lua_State* L);
+bool validate_script_ext(std::string path);

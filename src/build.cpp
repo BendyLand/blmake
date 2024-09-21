@@ -1,5 +1,23 @@
 #include "build.hpp"
 
+void run_pre_build_script(lua_State* L)
+{
+    std::string pre_build_path = extract_pre_build_path(L);
+    if (validate_script_ext(pre_build_path)) {
+        if (ensure_executable(pre_build_path.c_str())) {
+            std::cout << "Running pre-build script: " << pre_build_path << std::endl;
+            int err = OS::run_command(pre_build_path);
+            if (err) {
+                std::cerr << "Error running pre-build script: " << pre_build_path << std::endl;
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    else {
+        std::cout << "Error: Invalid extension. No script run." << std::endl;
+    }
+}
+
 std::string construct_full_build_command(lua_State* L)
 {
     std::string command = "";

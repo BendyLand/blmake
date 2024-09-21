@@ -4,39 +4,46 @@
 #include "os.hpp"
 #include "gen.hpp"
 
-//todo: manually check for and add compiler to PATH 
-
 int main(int argc, char** argv)
 {
+    // Check for command line args
     if (argc > 1) {
-        if (argv[1] == std::string("gen")) {
-            size_t err = handle_template_generation(argc, argv);
-            if (err) return 1;
-            return 0;
-        }
-        else if (argv[1] == std::string("help")) {
-            print_help_menu();
-            return 0;
+        int err = handle_cl_args(argc, argv);
+        if (err) {
+            std::cout << "Error handling command line arguments." << std::endl;
+            exit(EXIT_FAILURE);
         }
     }
+
+    // Create new Lua state for the config file to use
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
-    // Load and run the Lua configuration file
+    // Load and run the Lua config file
+    //! Eventually update this to be ./blmake.lua
     if (luaL_loadfile(L, "src/blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
         std::cerr << "Failed to load config: " << lua_tostring(L, -1) << std::endl;
         return 1;
     }
+
+    // Handle pre-build scripts
+    if (check_pre_build(L)) run_pre_build_script(L);
+
+    // Construct compilation command
     std::string command = handle_command_construction(L);
-    std::cout << command << std::endl;
     lua_close(L);
 
-    OS::run_command(command);
-
+    // Run compilation command
+    std::cout << command << std::endl;
+    int err = OS::run_command(command);
+    if (err) {
+        std::cerr << "Error running compilation command" << std::endl;
+        exit(EXIT_FAILURE);
+    }
     std::cout << "Compiled successfully!" << std::endl;
-
     return 0;
 }
+
 
 /*
 1. Pre-Build Hooks
