@@ -11,16 +11,21 @@ bool validate_script_ext(std::string path)
 
 bool ensure_executable(const char* scriptPath)
 {
-    // Check if the file is executable
-    if (access(scriptPath, X_OK) == 0) {
-        return true;
-    }
-    // File is not executable, attempt to add executable permission
-    if (chmod(scriptPath, S_IRWXU) == 0) {
-        return true;
-    }
-    std::cerr << "Failed to make the script executable." << std::endl;
-    return false;
+    #if defined(OS_UNIX_LIKE)
+        // Check if the file is executable
+        if (access(scriptPath, X_OK) == 0) {
+            return true;
+        }
+        // File is not executable, attempt to add executable permission
+        if (chmod(scriptPath, S_IRWXU) == 0) {
+            return true;
+        }
+        std::cerr << "Failed to make the script executable." << std::endl;
+        return false;
+    #else
+        std::cout << "Windows command execution not yet supported." << std::endl;
+        return false;
+    #endif
 }
 
 std::string extract_pre_build_path(lua_State* L)

@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/stat.h>
+#include "os.hpp"
 
 size_t copy_template_file(const std::string& from, const std::string& to);
 bool check_table(lua_State *L, const char* tableName);
