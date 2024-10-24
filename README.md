@@ -19,7 +19,7 @@ A simple and straightforward build tool for C/C++!
      - There are more commands to compile individual files, compile everything to an object file (.o), compile everything directly, etc. 
  - `blmake` (this project):
      - The largest of the build tools.
-     - Use for projects that would normally warrant the usage of something like CMake.
+     - Use for projects that would normally warrant the usage of something like Make.
      - Rather than defining its own custom syntax, `blmake` will expect a lua file called "blmake.lua".
      - There are commands to generate the config file and [will be commands to] run various parts of the build process.
        - The command to generate a config file is `blmake gen <option>`.
