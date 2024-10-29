@@ -19,7 +19,8 @@ Full_build = {
     src_dir = "custom_example",                 -- Source directory
     out_dir = "custom_example/build",           -- Output directory
     hooks = {                                   -- e.g., {pre_build = "scripts/pre_build.sh"} 
-        pre_build = "custom_example/scripts/pre_build.sh"
+        pre_build = "custom_example/scripts/pre_build.sh",
+        post_build = "custom_example/scripts/post_build.sh"
     }, 
     custom_flags = {},                          -- e.g., {"-fno-stack-protector"}
     tests = {},                               -- e.g., {"test_suite1", "test_suite2"}

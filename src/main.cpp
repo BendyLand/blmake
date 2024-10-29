@@ -4,6 +4,7 @@
 #include "os.hpp"
 #include "gen.hpp"
 
+//todo: check make conversion functions in gen.cpp
 int main(int argc, char** argv)
 {
     // Check for command line args
@@ -31,7 +32,6 @@ int main(int argc, char** argv)
 
     // Construct compilation command
     std::string command = handle_command_construction(L);
-    lua_close(L);
 
     // Run compilation command
     std::cout << command << std::endl;
@@ -41,10 +41,14 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
     std::cout << "Compiled successfully!" << std::endl;
+
+    // Handle post-build scripts
+    if (check_post_build(L)) run_post_build_script(L);
+
+    lua_close(L);
+
     return 0;
 }
-
-
 /*
 1. Pre-Build Hooks
 Command:

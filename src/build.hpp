@@ -11,3 +11,4 @@ std::string construct_tiny_build_command(lua_State* L);
 std::string construct_test_build_command(lua_State* L);
 std::string handle_command_construction(lua_State* L);
 void run_pre_build_script(lua_State* L);
+void run_post_build_script(lua_State* L);

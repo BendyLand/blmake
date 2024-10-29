@@ -18,6 +18,24 @@ void run_pre_build_script(lua_State* L)
     }
 }
 
+void run_post_build_script(lua_State* L)
+{
+    std::string post_build_path = extract_post_build_path(L);
+    if (validate_script_ext(post_build_path)) {
+        if (ensure_executable(post_build_path.c_str())) {
+            std::cout << "Running post-build script: " << post_build_path.c_str() << std::endl;
+            int err = OS::run_command(post_build_path);
+            if (err) {
+                std::cerr << "Error running post-build script: " << post_build_path << std::endl;
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    else {
+        std::cout << "Error: Invalid extension. No script run." << std::endl;
+    }
+}
+
 std::string construct_full_build_command(lua_State* L)
 {
     std::string command = "";
