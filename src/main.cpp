@@ -4,7 +4,6 @@
 #include "os.hpp"
 #include "gen.hpp"
 
-//todo: check make conversion functions in gen.cpp
 int main(int argc, char** argv)
 {
     // Check for command line args
