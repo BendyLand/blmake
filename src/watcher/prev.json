@@ -1,3 +1,5 @@
 {
-  "../../custom_example/main.cpp": "5ad119900151d47cb1024753959645aa97e3aa83b50c3f38ec4de4d7941ac307"
+  "../../custom_example/main.cpp": "5ad119900151d47cb1024753959645aa97e3aa83b50c3f38ec4de4d7941ac307",
+  "../../custom_example/utils.cpp": "08a5d8f96ac3dc3329cb2fc1380f995b72d3eccdaa6ca79e95566178b846b325",
+  "../../custom_example/utils.hpp": "363a2d6de1d703f96fc7b2ae322394b4ff1fbb33c63e6222e1411acaf6286fda"
 }
