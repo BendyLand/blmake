@@ -1,6 +1,6 @@
 # blmake
 
-*This project is in its fairly early stages as of Sep. 7, 2024. Functionality is limited and unpredictable.*
+*This project is in a somewhat early stage as of Oct. 31, 2024. Functionality may be unpredictable, but basic builds should actually work on Unix-like systems. However, as the tool is still being built, there is no usage guide yet.*
 
 A simple and straightforward build tool for C/C++!
 
@@ -24,5 +24,5 @@ A simple and straightforward build tool for C/C++!
      - There are commands to generate the config file and [will be commands to] run various parts of the build process.
        - The command to generate a config file is `blmake gen <option>`.
        - The options are: `full`, `build`, `simple`, `tiny`, and `test`. Leaving the option blank will default to `full`.
-       - *Note: The command `blmake` is not available by default on your system. You will need to build the project, rename the binary, and give it executable permissions to use it in this way.*
      - *Build commands TBD*
+     - *Note: The command `blmake` is not available by default on your system. You will need to build the project, rename the binary, and give it executable permissions to use it in this way.*
