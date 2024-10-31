@@ -1,7 +1,18 @@
 // This tool is meant to track file changes for recompilation in `blmake`.
 // It is NOT a general purpose file watcher, so it has some weird behavior;
-// for example, deleted files are not tracked, 
+// for example, deleted files are not tracked,
 // since they are not needed for recompilation.
+
+// USAGE:
+// On the first run, the program will populate 'prev.json' with all of the files
+// and their hashes from the specified directory path.
+// On subsequent runs, the file hashes will be recomputed and compared with the
+// previous ones. Any non-matching hashes will have their file name written to
+// 'recompile_list.txt'. 
+// NOTE: If any of the hashes are deleted from prev.json after the first run, 
+// this tool will not behave properly. To fix this, simply delete all of the 
+// entries in 'prev.json' (you should have empty curly braces, like this: {}).
+// The program will repopulate the file on the next run. 
 
 package main
 
@@ -17,7 +28,6 @@ import (
 )
 
 const prevFilePath = "prev.json"
-const currFilePath = "curr.json"
 const changedFilesPath = "recompile_list.txt"
 
 // FileHashes stores filenames and their hashes.
@@ -40,7 +50,7 @@ func main() {
 		}
 	}
 	err := saveHashes(currHashes, latestChanges)
-	if err != nil { 
+	if err != nil {
 		// No changes
 		writeTxtFile(latestChanges) // need to make sure the txt file is empty
 		fmt.Println(err)
@@ -56,17 +66,14 @@ func main() {
 // computeHashes computes SHA-256 hashes for the files in the given directory.
 func computeHashes(dir string) FileHashes {
 	hashes := make(FileHashes)
-
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatalf("Error reading directory: %v", err)
 	}
-
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
-
 		path := filepath.Join(dir, entry.Name())
 		hash, err := hashFile(path)
 		if err != nil {
@@ -75,7 +82,6 @@ func computeHashes(dir string) FileHashes {
 		}
 		hashes[path] = hash
 	}
-
 	return hashes
 }
 
@@ -103,7 +109,6 @@ func loadPrevHashes() FileHashes {
 		}
 		log.Fatalf("Error reading hash file: %v", err)
 	}
-
 	var hashes FileHashes
 	if err := json.Unmarshal(data, &hashes); err != nil {
 		log.Fatalf("Error unmarshaling hash file: %v", err)
@@ -114,7 +119,7 @@ func loadPrevHashes() FileHashes {
 func saveHashes(currHashes, changedHashes FileHashes) error {
 	if len(changedHashes) == 0 {
 		// Avoid resetting the JSON if no changes occurred.
-		return fmt.Errorf("No changes detected. Keeping previous state.") 
+		return fmt.Errorf("No changes detected. Keeping previous state.")
 	}
 	currData, err := json.MarshalIndent(currHashes, "", "  ")
 	if err != nil {
