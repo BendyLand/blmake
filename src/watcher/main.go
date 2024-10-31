@@ -30,8 +30,9 @@ import (
 	"strings"
 )
 
-const prevFilePath = "prev.json"
-const changedFilesPath = "recompile_list.txt"
+// These paths only work if run from the root dir of `blmake`.
+const prevFilePath = "src/watcher/prev.json"
+const changedFilesPath = "src/watcher/recompile_list.txt"
 
 // FileHashes stores filenames and their hashes.
 type FileHashes map[string]string
@@ -67,7 +68,7 @@ func main() {
 			}
 		}
 		if count > 0 {
-			fmt.Println("\nFiles written to 'recompile_list.txt'.")
+			fmt.Println("\nFiles written to 'src/watcher/recompile_list.txt'.")
 		} else {
 			fmt.Println("None.\n\nOnly header files changed. No need to recompile.")
 		}
