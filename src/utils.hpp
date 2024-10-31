@@ -5,6 +5,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -33,3 +34,5 @@ bool check_post_build(lua_State* L);
 std::string extract_post_build_path(lua_State* L);
 std::vector<std::string> split(std::string str, char delim);
 std::string to_lower(std::string str);
+std::string read_file(std::string path);
+std::string filter_files(std::string files, std::string check);

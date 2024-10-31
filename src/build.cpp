@@ -38,6 +38,7 @@ void run_post_build_script(lua_State* L)
 
 std::string construct_full_build_command(lua_State* L)
 {
+    std::string check_file = read_file("src/watcher/recompile_list.txt");
     std::string command = "";
     lua_getglobal(L, "Full_build");
     lua_getfield(L, -1, "compiler");
@@ -116,11 +117,15 @@ std::string construct_full_build_command(lua_State* L)
         prefix = src_dir;
     }
     lua_pop(L, 1);
+    std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    OS::run_command(watcher_cmd);
     lua_getfield(L, -1, "files");
     if (lua_istable(L, -1)) {
         if (!prefix.empty()) prefix += "/";
         std::string files = get_table_commands(L, prefix);
         sanitize(files);
+        //todo: find method to handle unchanged files
+        // files = filter_files(files, check_file);
         if (!files.empty()) {
             command += " " + files;
         }
@@ -257,6 +262,8 @@ std::string construct_build_command(lua_State* L)
         prefix = src_dir;
     }
     lua_pop(L, 1);
+    std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    OS::run_command(watcher_cmd);
     lua_getfield(L, -1, "files");
     if (lua_istable(L, -1)) {
         if (!prefix.empty()) prefix += "/";
@@ -354,7 +361,8 @@ std::string construct_simple_build_command(lua_State* L)
         }
     }
     lua_pop(L, 1);
-    std::string prefix = "";
+    std::string watcher_cmd = "src/watcher/watcher .";
+    OS::run_command(watcher_cmd);
     lua_getfield(L, -1, "files");
     if (lua_istable(L, -1)) {
         std::string files = get_table_commands(L, "");
@@ -412,6 +420,8 @@ std::string construct_tiny_build_command(lua_State* L)
         }
         lua_pop(L, 1);
     }
+    std::string watcher_cmd = "src/watcher/watcher .";
+    OS::run_command(watcher_cmd);
     lua_getfield(L, -1, "files");
     if (lua_istable(L, -1)) {
         std::string files = get_table_commands(L, "");
@@ -496,6 +506,8 @@ std::string construct_test_build_command(lua_State* L)
         prefix = src_dir;
     }
     lua_pop(L, 1);
+    std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    OS::run_command(watcher_cmd);
     lua_getfield(L, -1, "files");
     if (lua_istable(L, -1)) {
         if (!prefix.empty()) prefix += "/";
@@ -557,6 +569,7 @@ std::string construct_test_build_command(lua_State* L)
     return command;
 }
 
+//? Watcher command is run inside each branch below.
 std::string handle_command_construction(lua_State* L)
 {
     std::string command = "";

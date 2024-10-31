@@ -3,3 +3,5 @@ cmake_example
 NodeStorage
 custom_example/include
 src/safe_build_templates.txt
+prev.json
+recompile_list.txt

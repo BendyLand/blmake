@@ -1,5 +1,26 @@
 #include "utils.hpp"
 
+std::string filter_files(std::string files, std::string check)
+{
+    std::vector<std::string> originals = split(files, ' ');
+    std::vector<std::string> result;
+    result.reserve(originals.size());
+    for (std::string original : originals) {
+        if (check.find(original) != std::string::npos) {
+            result.emplace_back(original);
+        }
+    }
+    return join(result, " ");
+}
+
+std::string read_file(std::string path)
+{
+    std::ifstream t(path);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    return buffer.str();
+}
+
 bool validate_script_ext(std::string& path)
 {
     bool result = false;

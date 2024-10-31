@@ -11,6 +11,7 @@ int handle_cl_args(int argc, char** argv)
         print_help_menu();
         return 0;
     }
+    return 1;
 }
 
 size_t generate_full_build()

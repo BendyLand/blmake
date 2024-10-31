@@ -129,7 +129,7 @@ func loadPrevHashes() FileHashes {
 func saveHashes(currHashes, changedHashes FileHashes) error {
 	if len(changedHashes) == 0 {
 		// Avoid resetting the JSON if no changes occurred.
-		return fmt.Errorf("No changes detected. Keeping previous state.")
+		return fmt.Errorf("No changes detected. No recompilation necessary.")
 	}
 	currData, err := json.MarshalIndent(currHashes, "", "  ")
 	if err != nil {
