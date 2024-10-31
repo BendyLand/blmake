@@ -1,7 +1,7 @@
 // This tool is meant to track file changes for recompilation in `blmake`.
 // It is NOT a general purpose file watcher, so it has some weird behavior;
-// for example, deleted files are not tracked, since they are not needed for 
-// recompilation.
+// for example, deleted files and header files are not tracked, 
+// since they are not needed for recompilation.
 
 // USAGE:
 // On the first run, the program will populate 'prev.json' with all of the files
