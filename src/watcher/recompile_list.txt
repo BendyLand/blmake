@@ -1,3 +1,1 @@
-../../custom_example/utils.cpp
-../../custom_example/utils.hpp
 ../../custom_example/main.cpp

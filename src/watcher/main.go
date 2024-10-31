@@ -1,18 +1,20 @@
 // This tool is meant to track file changes for recompilation in `blmake`.
 // It is NOT a general purpose file watcher, so it has some weird behavior;
-// for example, deleted files are not tracked,
-// since they are not needed for recompilation.
+// for example, deleted files are not tracked, since they are not needed for 
+// recompilation.
 
 // USAGE:
 // On the first run, the program will populate 'prev.json' with all of the files
 // and their hashes from the specified directory path.
 // On subsequent runs, the file hashes will be recomputed and compared with the
 // previous ones. Any non-matching hashes will have their file name written to
-// 'recompile_list.txt'. 
-// NOTE: If any of the hashes are deleted from prev.json after the first run, 
-// this tool will not behave properly. To fix this, simply delete all of the 
+// 'recompile_list.txt'.
+
+// NOTE: 
+// If any of the hashes are deleted from prev.json after the first run,
+// this tool will not behave properly. To fix this, simply delete all of the
 // entries in 'prev.json' (you should have empty curly braces, like this: {}).
-// The program will repopulate the file on the next run. 
+// The program will repopulate the file on the next run.
 
 package main
 
@@ -25,6 +27,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const prevFilePath = "prev.json"
@@ -55,11 +58,19 @@ func main() {
 		writeTxtFile(latestChanges) // need to make sure the txt file is empty
 		fmt.Println(err)
 	} else {
+		count := 0
 		fmt.Println("Changed files:")
 		for file, _ := range latestChanges {
-			fmt.Println(file)
+			if strings.Contains(file, ".c") {
+				fmt.Println(file)
+				count++
+			}
 		}
-		fmt.Println("Files written to 'recompile_list.txt'.")
+		if count > 0 {
+			fmt.Println("\nFiles written to 'recompile_list.txt'.")
+		} else {
+			fmt.Println("None.\n\nOnly header files changed. No need to recompile.")
+		}
 	}
 }
 
@@ -97,7 +108,6 @@ func hashFile(filename string) (string, error) {
 	if _, err := io.Copy(hasher, f); err != nil {
 		return "", fmt.Errorf("error hashing file %s: %w", filename, err)
 	}
-
 	return hex.EncodeToString(hasher.Sum(nil)), nil
 }
 
@@ -135,7 +145,9 @@ func saveHashes(currHashes, changedHashes FileHashes) error {
 func writeTxtFile(hashes FileHashes) {
 	contents := ""
 	for file, _ := range hashes {
-		contents += file + "\n"
+		if strings.Contains(file, ".c") {
+			contents += file + "\n"
+		}
 	}
 	if err := os.WriteFile(changedFilesPath, []byte(contents), 0644); err != nil {
 		log.Fatalf("Error writing text file: %v", err)
