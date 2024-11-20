@@ -413,7 +413,7 @@ void print_valid_compilers()
 
 void print_help_menu()
 {
-    std::cout << \
+    std::cout << "\n" << \
     "Welcome to the blmake help menu!\n\n" << \
     "Usage:\nblmake <command> <args>\n\n" << \
     "The available commands are:\n" << \

@@ -7,7 +7,6 @@ using std::string; using std::cout; using std::endl;
 int main()
 {
     cout << "Hello change!" << endl;
-
     string test1 = "test";
     string test2 = "#include <stdio.h>";
     string test3 = "#define None 0";

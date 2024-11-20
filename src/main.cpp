@@ -13,6 +13,7 @@ int main(int argc, char** argv)
             std::cout << "Error handling command line arguments." << std::endl;
             exit(EXIT_FAILURE);
         }
+        return 0;
     }
 
     // Create new Lua state for the config file to use

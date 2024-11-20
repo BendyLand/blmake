@@ -15,6 +15,8 @@
 // this tool will not behave properly. To fix this, simply delete all of the
 // entries in 'prev.json' (you should have empty curly braces, like this: {}).
 // The program will repopulate the file on the next run.
+// If the `watcher` binary needs to be rebuilt, simply run `go build .` 
+// from the `watcher` directory. 
 
 package main
 
