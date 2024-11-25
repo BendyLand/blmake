@@ -256,6 +256,18 @@ size_t copy_template_file(const std::string& templateFilePath, const std::string
     return 0;
 }
 
+size_t write_string_to_file(const std::string& destFilePath, const std::string& contents)
+{
+    std::ofstream newFile(destFilePath);
+    if (!newFile.is_open()) {
+        std::cerr << "Error creating new file: " << destFilePath << std::endl;
+        return 1;
+    }
+    newFile << contents;
+    newFile.close();
+    return 0;
+}
+
 std::string to_lower(std::string str)
 {
     std::string result = "";

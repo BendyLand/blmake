@@ -36,3 +36,4 @@ std::vector<std::string> split(std::string str, char delim);
 std::string to_lower(std::string str);
 std::string read_file(std::string path);
 std::string filter_files(std::string files, std::string check);
+size_t write_string_to_file(const std::string& destFilePath, const std::string& contents);

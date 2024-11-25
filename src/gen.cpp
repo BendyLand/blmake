@@ -1,4 +1,9 @@
 #include "gen.hpp"
+#include "templates/full_build_template.h"
+#include "templates/build_template.h"
+#include "templates/simple_build_template.h"
+#include "templates/tiny_build_template.h"
+#include "templates/test_build_template.h"
 
 int handle_cl_args(int argc, char** argv)
 {
@@ -16,55 +21,45 @@ int handle_cl_args(int argc, char** argv)
 
 size_t generate_full_build()
 {
-    int err = copy_template_file("src/templates/full_build_template.txt", "./blmake.lua");
-    if (err) {
-        std::cerr << "Error generating config file." << std::endl;
-        return 1;
-    }
+    std::string contents = ""; 
+    for (size_t i = 0; i < full_build_template_txt_len; i++) contents += full_build_template_txt[i];
+    write_string_to_file("./blmake.lua", contents);
     std::cout << "Config file generated successfully!" << std::endl;
     return 0;
 }
 
 size_t generate_build()
 {
-    int err = copy_template_file("src/templates/build_template.txt", "./blmake.lua");
-    if (err) {
-        std::cerr << "Error generating config file." << std::endl;
-        return 1;
-    }
+    std::string contents = ""; 
+    for (size_t i = 0; i < build_template_txt_len; i++) contents += build_template_txt[i];
+    write_string_to_file("./blmake.lua", contents);
     std::cout << "Config file generated successfully!" << std::endl;
     return 0;
 }
 
 size_t generate_simple_build()
 {
-    int err = copy_template_file("src/templates/simple_build_template.txt", "./blmake.lua");
-    if (err) {
-        std::cerr << "Error generating config file." << std::endl;
-        return 1;
-    }
+    std::string contents = ""; 
+    for (size_t i = 0; i < simple_build_template_txt_len; i++) contents += simple_build_template_txt[i];
+    write_string_to_file("./blmake.lua", contents);
     std::cout << "Config file generated successfully!" << std::endl;
     return 0;
 }
 
 size_t generate_tiny_build()
 {
-    int err = copy_template_file("src/templates/tiny_build_template.txt", "./blmake.lua");
-    if (err) {
-        std::cerr << "Error generating config file." << std::endl;
-        return 1;
-    }
+    std::string contents = ""; 
+    for (size_t i = 0; i < tiny_build_template_txt_len; i++) contents += tiny_build_template_txt[i];
+    write_string_to_file("./blmake.lua", contents);
     std::cout << "Config file generated successfully!" << std::endl;
     return 0;
 }
 
 size_t generate_test_build()
 {
-    int err = copy_template_file("src/templates/test_build_template.txt", "./blmake.lua");
-    if (err) {
-        std::cerr << "Error generating config file." << std::endl;
-        return 1;
-    }
+    std::string contents = ""; 
+    for (size_t i = 0; i < test_build_template_txt_len; i++) contents += test_build_template_txt[i];
+    write_string_to_file("./blmake.lua", contents);
     std::cout << "Config file generated successfully!" << std::endl;
     return 0;
 }
