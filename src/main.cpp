@@ -3,17 +3,13 @@
 #include "os.hpp"
 #include "gen.hpp"
 
-//todo: update construction functions to match the new config files
-//todo: also figure out how to get incremental builds into out_dir
+//todo: figure out how to get incremental builds into out_dir
 int main(int argc, char** argv)
 {
     // Check for command line args
     if (argc > 1) {
         int err = handle_cl_args(argc, argv);
-        if (err) {
-            std::cout << "Error handling command line arguments." << std::endl;
-            exit(EXIT_FAILURE);
-        }
+        check_error_fatal(err, "Error handling command line arguments.");
         return 0;
     }
 
@@ -31,21 +27,17 @@ int main(int argc, char** argv)
     // Handle pre-build scripts
     if (check_pre_build(L)) run_pre_build_script(L);
 
-    // Construct compilation command
+    // Construct and run compilation command
     std::string command = handle_command_construction(L);
-
-    // Run compilation command
     std::cout << command << std::endl;
     int err = OS::run_command(command);
-    if (err) {
-        std::cerr << "Error running compilation command" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    check_error_fatal(err, "Error running compilation command.");
     std::cout << "Compiled successfully!" << std::endl;
 
     // Handle post-build scripts
     if (check_post_build(L)) run_post_build_script(L);
 
+    // Close lua state
     lua_close(L);
 
     return 0;

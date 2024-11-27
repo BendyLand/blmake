@@ -1,5 +1,13 @@
 #include "utils.hpp"
 
+void check_error_fatal(int err, std::string message)
+{
+    if (err) {
+        std::cout << message << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
 std::string filter_files(std::string files, std::string check)
 {
     std::vector<std::string> originals = split(files, ' ');
