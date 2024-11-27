@@ -57,45 +57,64 @@ bool ensure_executable(const char* scriptPath)
     #endif
 }
 
+std::string perform_pre_build_path_extraction(lua_State* L, const char* path)
+{
+    std::string result = "";
+    lua_getglobal(L, path);
+    lua_getfield(L, -1, "hooks");
+    if (lua_istable(L, -1)) {
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            // Check if the key is a string
+            if (lua_isstring(L, -2)) {
+                const char* key = lua_tostring(L, -2);
+                if (strcmp(key, "pre_build") == 0) {
+                    if (lua_isstring(L, -1)) {
+                        result = lua_tostring(L, -1);
+                    }
+                } 
+            }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
+        }
+    }
+    return result;
+}
+
 std::string extract_pre_build_path(lua_State* L)
 {
     std::string result = "";
     if (check_table(L, "Full_build")) {
-        lua_getglobal(L, "Full_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "pre_build") == 0) {
-                        if (lua_isstring(L, -1)) {
-                            result = lua_tostring(L, -1);
-                        }
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_pre_build_path_extraction(L, "Full_build");
+    }
+    else if (check_table(L, "Build")) {
+        result = perform_pre_build_path_extraction(L, "Build");
+    }
+    else if (check_table(L, "Simple_build")) {
+        result = perform_pre_build_path_extraction(L, "Simple_Build");
     }
     else if (check_table(L, "Test_build")) {
-        lua_getglobal(L, "Test_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "pre_build") == 0) {
-                        if (lua_isstring(L, -1)) {
-                            result = lua_tostring(L, -1);
-                        }
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
+        result = perform_pre_build_path_extraction(L, "Test_build");
+    }
+    return result;
+}
+
+bool perform_pre_build_check(lua_State* L, const char* path)
+{
+    bool result = false;
+    lua_getglobal(L, path);
+    lua_getfield(L, -1, "hooks");
+    if (lua_istable(L, -1)) {
+        std::string path = "";
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            // Check if the key is a string
+            if (lua_isstring(L, -2)) {
+                const char* key = lua_tostring(L, -2);
+                if (strcmp(key, "pre_build") == 0) {
+                    result = true;
+                } 
             }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
         }
     }
     return result;
@@ -105,39 +124,38 @@ bool check_pre_build(lua_State* L)
 {
     bool result = false;
     if (check_table(L, "Full_build")) {
-        lua_getglobal(L, "Full_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            std::string path = "";
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "pre_build") == 0) {
-                        result = true;
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_pre_build_check(L, "Full_build");
+    }
+    else if (check_table(L, "Build")) {
+        result = perform_pre_build_check(L, "Build");
+    }
+    else if (check_table(L, "Simple_build")) {
+        result = perform_pre_build_check(L, "Simple_build");
     }
     else if (check_table(L, "Test_build")) {
-        lua_getglobal(L, "Test_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            std::string path = "";
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "pre_build") == 0) {
-                        result = true;
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
+        result = perform_pre_build_check(L, "Test_build");
+    }
+    return result;
+}
+
+std::string perform_post_build_path_extraction(lua_State* L, const char* path)
+{
+    std::string result = "";
+    lua_getglobal(L, "Full_build");
+    lua_getfield(L, -1, "hooks");
+    if (lua_istable(L, -1)) {
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            // Check if the key is a string
+            if (lua_isstring(L, -2)) {
+                const char* key = lua_tostring(L, -2);
+                if (strcmp(key, "post_build") == 0) {
+                    if (lua_isstring(L, -1)) {
+                        result = lua_tostring(L, -1);
+                    }
+                } 
             }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
         }
     }
     return result;
@@ -147,79 +165,37 @@ std::string extract_post_build_path(lua_State* L)
 {
     std::string result = "";
     if (check_table(L, "Full_build")) {
-        lua_getglobal(L, "Full_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "post_build") == 0) {
-                        if (lua_isstring(L, -1)) {
-                            result = lua_tostring(L, -1);
-                        }
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_post_build_path_extraction(L, "Full_build");
     }
     else if (check_table(L, "Build")) {
-        lua_getglobal(L, "Build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "post_build") == 0) {
-                        if (lua_isstring(L, -1)) {
-                            result = lua_tostring(L, -1);
-                        }
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_post_build_path_extraction(L, "Build");
     }
     else if (check_table(L, "Simple_build")) {
-        lua_getglobal(L, "Simple_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "post_build") == 0) {
-                        if (lua_isstring(L, -1)) {
-                            result = lua_tostring(L, -1);
-                        }
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_post_build_path_extraction(L, "Simple_build");
     }
     else if (check_table(L, "Test_build")) {
-        lua_getglobal(L, "Test_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "post_build") == 0) {
-                        if (lua_isstring(L, -1)) {
-                            result = lua_tostring(L, -1);
-                        }
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
+        result = perform_post_build_path_extraction(L, "Test, build");
+    }
+    return result;
+}
+
+bool perform_post_build_check(lua_State* L, const char* path)
+{
+    bool result = false;
+    lua_getglobal(L, "Full_build");
+    lua_getfield(L, -1, "hooks");
+    if (lua_istable(L, -1)) {
+        std::string path = "";
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            // Check if the key is a string
+            if (lua_isstring(L, -2)) {
+                const char* key = lua_tostring(L, -2);
+                if (strcmp(key, "post_build") == 0) {
+                    result = true;
+                } 
             }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
         }
     }
     return result;
@@ -229,76 +205,16 @@ bool check_post_build(lua_State* L)
 {
     bool result = false;
     if (check_table(L, "Full_build")) {
-        lua_getglobal(L, "Full_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            std::string path = "";
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "post_build") == 0) {
-                        result = true;
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_post_build_check(L, "Full_build");
     }
     else if (check_table(L, "Build")) {
-        lua_getglobal(L, "Build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            std::string path = "";
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "post_build") == 0) {
-                        result = true;
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_post_build_check(L, "Build");
     }
     else if (check_table(L, "Simple_build")) {
-        lua_getglobal(L, "Simple_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            std::string path = "";
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "post_build") == 0) {
-                        result = true;
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_post_build_check(L, "Simple_build");
     }
     else if (check_table(L, "Test_build")) {
-        lua_getglobal(L, "Test_build");
-        lua_getfield(L, -1, "hooks");
-        if (lua_istable(L, -1)) {
-            std::string path = "";
-            lua_pushnil(L);
-            while (lua_next(L, -2) != 0) {
-                // Check if the key is a string
-                if (lua_isstring(L, -2)) {
-                    const char* key = lua_tostring(L, -2);
-                    if (strcmp(key, "post_build") == 0) {
-                        result = true;
-                    } 
-                }
-                lua_pop(L, 1); // Pop value, keep key for next iteration
-            }
-        }
+        result = perform_post_build_check(L, "Test_build");
     }
     return result;
 }
@@ -489,7 +405,7 @@ void sanitize(std::string& original)
 
 bool is_valid_compiler(std::string compiler)
 {
-    std::vector<std::string> valid_comps = {"gcc", "g++", "clang", "msvc"};
+    std::vector<std::string> valid_comps = {"gcc", "g++", "clang", "msvc", "tcc"};
     for (std::string comp : valid_comps) {
         if (compiler.find(comp) != std::string::npos) return true;
     }
@@ -498,7 +414,7 @@ bool is_valid_compiler(std::string compiler)
 
 void print_valid_compilers()
 {
-    std::vector<std::string> valid_comps = {"gcc", "g++", "clang", "msvc"};
+    std::vector<std::string> valid_comps = {"gcc", "g++", "clang", "msvc", "tcc"};
     std::cout << "Valid compilers:" << std::endl;
     for (std::string comp : valid_comps) {
         std::cout << comp << std::endl;
