@@ -1,9 +1,10 @@
-#include <iostream>
 #include "utils.hpp"
 #include "build.hpp"
 #include "os.hpp"
 #include "gen.hpp"
 
+//todo: update construction functions to match the new config files
+//todo: also figure out how to get incremental builds into out_dir
 int main(int argc, char** argv)
 {
     // Check for command line args
