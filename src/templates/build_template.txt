@@ -4,19 +4,20 @@
 -- Everything else expects a string value. Use "" if unused.
 
 Build = {
-    compiler = "",     -- e.g., "g++"
-    files = {},        -- e.g., {"main.cpp", "utils.cpp"}
-    lang_exts = {},    -- e.g., {"-std=c++20"}
-    include_dirs = {}, -- Directories for include files (optional)
-    dependencies = {}, -- Dependencies (e.g., libraries, library paths)
-    preproc_opts = {}, -- Preprocessor options (e.g., macros, include paths)
-    linker_opts = {},  -- Linker options (e.g., "m" for the math lib)
-    optimization = "", -- Optimization level (e.g., "-O2", "-Os")
-    debugging = true,  -- Will add "-g" if true.
-    build_type = "",   -- e.g., "Debug" or "Release"
-    output = "",       -- e.g., "myprogram"
-    src_dir = "",      -- Source directory
-    out_dir = "",      -- Output directory
+    compiler = "",      -- e.g., "g++"
+    files = {},         -- e.g., {"main.cpp", "utils.cpp"}
+    lang_exts = {},     -- e.g., {"-std=c++20"}
+    include_dirs = {},  -- Directories for include files (optional)
+    dependencies = {},  -- Libraries to link against, e.g. {"lib1", "lib2"}
+    preproc_opts = {},  -- Preprocessor options (e.g., macros, include paths)
+    linker_opts = {},   -- Linker options (e.g., "m" for the math lib)
+    optimization = "",  -- Optimization level (e.g., "-O2", "-Os")
+    debugging = false,  -- A BOOLEAN value indicating whether to include debugging info ("-g")
+    build_type = "",    -- e.g., "Debug" or "Release"
+    output = "",        -- e.g., "myprogram"
+    src_dir = "",       -- Source directory
+    out_dir = "",       -- Output directory
+    hooks = {},         -- e.g., {pre_build = "scripts/pre_build.sh"} 
 }
 
 -- Customize behavior below!

@@ -9,17 +9,16 @@ Test_build = {
     files = {},         -- e.g., {"main.cpp", "utils.cpp"}
     lang_exts = {},     -- e.g., {"-std=c++20"}
     include_dirs = {},  -- Directories for include files (optional)
-    dependencies = {},  -- libraries to link against (e.g., "m" for the math lib)
+    dependencies = {},  -- Libraries to link against (e.g., "m" for the math lib)
     preproc_opts = {},  -- Preprocessor options (e.g., macros, include paths)
     linker_opts = {},   -- Linker options (e.g., libraries, library paths)
     optimization = "",  -- Optimization level (e.g., "-O2", "-Os")
     warnings = {},      -- Warning levels and options (e.g., "-Wall", "-Werror")
     profiling = "",     -- Profiling options (e.g., "-pg")
-    debugging = true,   -- Will add "-g" if true.
+    debugging = false,  -- Will add "-g" if true.
     output = "",        -- e.g., "myprogram"
     src_dir = "",       -- Source directory
     out_dir = "",       -- Output directory
     tests = {},         -- e.g., {"test_suite1", "test_suite2"}
-    post_build = {},    -- e.g., {"run_tests", "deploy"}
     hooks = {}          -- e.g., {pre_build = "scripts/pre_build.sh", post_build = "scripts/post_build.sh"} 
 }
