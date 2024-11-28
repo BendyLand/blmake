@@ -18,6 +18,7 @@ void run_pre_build_script(lua_State* L)
     }
 }
 
+//todo: something is panicking when using as a standalone
 void run_post_build_script(lua_State* L)
 {
     std::string post_build_path = extract_post_build_path(L);

@@ -4,19 +4,19 @@
 -- Everything else expects a string value. Use "" if unused.
 
 Build = {
-    compiler = "g++",      -- e.g., "g++"
-    files = {"test.cpp"},         -- e.g., {"main.cpp", "utils.cpp"}
-    lang_exts = {},     -- e.g., {"-std=c++20"}
-    include_dirs = {},  -- Directories for include files (optional)
-    dependencies = {},  -- Libraries to link against, e.g. {"lib1", "lib2"}
-    preproc_opts = {},  -- Preprocessor options (e.g., macros, include paths)
-    linker_opts = {},   -- Linker options (e.g., "m" for the math lib)
-    optimization = "",  -- Optimization level (e.g., "-O2", "-Os")
-    debugging = false,  -- A BOOLEAN value indicating whether to include debugging info ("-g")
-    build_type = "",    -- e.g., "Debug" or "Release"
-    output = "test",        -- e.g., "myprogram"
-    src_dir = "",       -- Source directory
-    out_dir = "",       -- Output directory
+    compiler = "g++",                          -- e.g., "g++"
+    files = {"test.cpp"},                      -- e.g., {"main.cpp", "utils.cpp"}
+    lang_exts = {},                            -- e.g., {"-std=c++20"}
+    include_dirs = {},                         -- Directories for include files (optional)
+    dependencies = {},                         -- Libraries to link against, e.g. {"lib1", "lib2"}
+    preproc_opts = {},                         -- Preprocessor options (e.g., macros, include paths)
+    linker_opts = {},                          -- Linker options (e.g., "m" for the math lib)
+    optimization = "",                         -- Optimization level (e.g., "-O2", "-Os")
+    debugging = false,                         -- A BOOLEAN value indicating whether to include debugging info ("-g")
+    build_type = "",                           -- e.g., "Debug" or "Release"
+    output = "test",                           -- e.g., "myprogram"
+    src_dir = "",                              -- Source directory
+    out_dir = "",                              -- Output directory
     hooks = {post_build = "./run.sh"},         -- e.g., {pre_build = "scripts/pre_build.sh"} 
 }
 
