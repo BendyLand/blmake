@@ -96,7 +96,7 @@ void get_comment_lines(char* contents, int* nums)
     get_lines(contents, lines);
     size_t nums_idx = 0;
     for (size_t i = 0; i < LINES; i++) {
-        if (strstr(lines[i], "--") != NULL) { // Check for "--" in the line
+        if (strstr(lines[i], "--") != NULL) { 
             nums[nums_idx++] = i;
         }
     }
@@ -125,8 +125,8 @@ void insert(char dest[], const char src[], int pos)
     if (pos < 0 || pos > dest_len) {
         return;
     }
-    memmove(dest + pos + src_len, dest + pos, dest_len - pos + 1);
-    memcpy(dest + pos, src, src_len);
+    memmove(dest+pos+src_len, dest+pos, dest_len-pos+1);
+    memcpy(dest+pos, src, src_len);
 }
 
 void fix_comment_lines(char* contents, int groups[][LINES], size_t* sizes, size_t count)
@@ -135,13 +135,13 @@ void fix_comment_lines(char* contents, int groups[][LINES], size_t* sizes, size_
     get_lines(contents, lines);
     int max_vals[LINES] = {0};
     find_max_in_groups(lines, groups, sizes, count, max_vals);
-    for (size_t group_index = 0; group_index < count; group_index++) {
-        for (size_t line_index = 0; line_index < sizes[group_index]; line_index++) {
-            int line_pos = groups[group_index][line_index];
+    for (size_t group_idx = 0; group_idx < count; group_idx++) {
+        for (size_t line_idx = 0; line_idx < sizes[group_idx]; line_idx++) {
+            int line_pos = groups[group_idx][line_idx];
             char* line = lines[line_pos];
             int comment_pos = find(line, "--");
             if (comment_pos >= 0) {
-                int diff = max_vals[group_index] - comment_pos;
+                int diff = max_vals[group_idx] - comment_pos;
                 if (diff > 0) {
                     char spaces[LINE_LEN] = {0};
                     memset(spaces, ' ', diff);
@@ -190,7 +190,7 @@ void trim_end(char *str)
 {
     if (str == NULL) return;
     size_t len = strlen(str);
-    while (len > 0 && (str[len-1] == ' ' || str[len-1] == '\t' ||
+    while (len > 0 && (str[len-1] == ' '  || str[len-1] == '\t' ||
                        str[len-1] == '\n' || str[len-1] == '\r' ||
                        str[len-1] == 0x01)) {
         len--;

@@ -141,7 +141,7 @@ bool check_pre_build(lua_State* L)
 std::string perform_post_build_path_extraction(lua_State* L, const char* path)
 {
     std::string result = "";
-    lua_getglobal(L, "Full_build");
+    lua_getglobal(L, path);
     lua_getfield(L, -1, "hooks");
     if (lua_istable(L, -1)) {
         lua_pushnil(L);
@@ -182,7 +182,7 @@ std::string extract_post_build_path(lua_State* L)
 bool perform_post_build_check(lua_State* L, const char* path)
 {
     bool result = false;
-    lua_getglobal(L, "Full_build");
+    lua_getglobal(L, path);
     lua_getfield(L, -1, "hooks");
     if (lua_istable(L, -1)) {
         std::string path = "";

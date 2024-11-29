@@ -16,6 +16,11 @@ int handle_cl_args(int argc, char** argv)
         print_help_menu();
         return 0;
     }
+    else if (argv[1] == std::string("align")) {
+        //todo: write function below
+        // align_config_comments();
+        return 0;
+    }
     return 1;
 }
 
