@@ -3,6 +3,9 @@
 #include <iostream>
 #include <vector>
 #include <unistd.h>
+#include <string>
+#include <cstring>
+#include <sys/wait.h>  // for waitpid
 #include "utils.hpp"
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -36,8 +39,9 @@
 class OS
 {
 public:
-    std::string detect_os();
-    static int run_command(std::string& args);
+    static std::string detect_os();
+    static std::pair<int, std::string> run_command(std::string& args);
 private: 
-    static int run_command_unix(const std::vector<std::string>& args);
+    static std::pair<int, std::string> run_command_unix(const std::vector<std::string>& args);
+    static std::pair<int, std::string> run_command_windows(const std::string& command);
 };

@@ -30,8 +30,8 @@ int main(int argc, char** argv)
     // Construct and run compilation command
     std::string command = handle_command_construction(L);
     std::cout << command << std::endl;
-    int err = OS::run_command(command);
-    check_error_fatal(err, "Error running compilation command.");
+    std::pair<int, std::string> err = OS::run_command(command);
+    check_error_fatal(err.first, "Error running compilation command.");
     std::cout << "Compiled successfully!" << std::endl;
 
     // Handle post-build scripts
