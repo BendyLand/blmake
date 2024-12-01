@@ -7,10 +7,8 @@ void run_pre_build_script(lua_State* L)
         if (ensure_executable(pre_build_path.c_str())) {
             std::cout << "Running pre-build script: " << pre_build_path << std::endl;
             std::pair<int, std::string> err = OS::run_command(pre_build_path);
-            if (err.first) {
-                std::cerr << "Error running pre-build script: " << pre_build_path << std::endl;
-                exit(EXIT_FAILURE);
-            }
+            std::string err_message = "Error running pre-build script: " + pre_build_path; 
+            check_error_fatal(err.first, err_message);
             if (err.second.size() > 0) {
                 std::cout << err.second << std::endl;
             }
@@ -29,10 +27,8 @@ void run_post_build_script(lua_State* L)
         if (ensure_executable(post_build_path.c_str())) {
             std::cout << "Running post-build script: " << post_build_path.c_str() << std::endl;
             std::pair<int, std::string> err = OS::run_command(post_build_path);
-            if (err.first) {
-                std::cerr << "Error running post-build script: " << post_build_path << std::endl;
-                exit(EXIT_FAILURE);
-            }
+            std::string message = "Error running post-build script: " + post_build_path; 
+            check_error_fatal(err.first, message);
             if (err.second.size() > 0) {
                 std::cout << err.second << std::endl;
             }

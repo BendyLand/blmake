@@ -40,3 +40,4 @@ size_t write_string_to_file(const std::string& destFilePath, const std::string& 
 void check_error_fatal(int err, std::string message);
 std::string perform_pre_build_path_extraction(lua_State* L, const char* path);
 bool perform_pre_build_check(lua_State* L, const char* path);
+int check_error_passive(int err, std::string message);
