@@ -1,4 +1,0 @@
-../../custom_example/main.cpp
-../../custom_example/newtest.cpp
-../../custom_example/test.cpp
-../../custom_example/utils.cpp

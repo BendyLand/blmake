@@ -5,6 +5,7 @@
 #include "os.hpp"
 
 std::string construct_full_build_command(lua_State* L);
+std::vector<std::string> construct_incremental_full_build_commands(lua_State* L);
 std::string construct_build_command(lua_State* L);
 std::string construct_simple_build_command(lua_State* L);
 std::string construct_tiny_build_command(lua_State* L);

@@ -19,7 +19,7 @@ void check_error_fatal(int err, std::string message)
 
 std::string filter_files(std::string files, std::string check)
 {
-    std::vector<std::string> originals = split(files, ' ');
+    std::vector<std::string> originals = split(files, " ");
     std::vector<std::string> result;
     result.reserve(originals.size());
     for (std::string original : originals) {
@@ -228,22 +228,6 @@ bool check_post_build(lua_State* L)
     return result;
 }
 
-std::vector<std::string> split(std::string str, char delim)
-{
-    std::vector<std::string> result;
-    std::string temp = "";
-    for (char c : str) {
-        if (c == delim) {
-            result.push_back(temp);
-            temp = "";
-            continue;
-        }
-        temp += c;
-    }
-    if (temp.size() > 0) result.push_back(temp);
-    return result;
-}
-
 size_t copy_template_file(const std::string& templateFilePath, const std::string& newFilePath)
 {
     std::ifstream templateFile(templateFilePath);
@@ -312,35 +296,28 @@ std::vector<std::string> chars(std::string original)
     return result;
 }
 
-std::vector<std::string> split(std::string original, std::string delim)
+std::vector<std::string> split(std::string& original, const std::string& delim)
 {
     std::vector<std::string> result;
     std::string temp = "";
     if (delim.size() == 0) return chars(original);
-    if (delim.size() == 1) {
-        temp += delim;
-        result.push_back(temp);
+    if (original.size() == 1) {
+        result.emplace_back(original);
         return result;
     }
-    for (size_t i = 0; i < original.size(); i++) {
-        if (original[i] == delim[0]) {
-            for (size_t j = 0; j < delim.size(); j++) {
-                if (original[i+j] != delim[j]) goto Add;
-            }
-            result.push_back(temp);
-            temp = "";
-            continue;
-        }
-        Add:
-        temp += original[i];
+    while (original.find(delim) != std::string::npos) {
+        temp = original.substr(0, original.find(delim));
+        result.emplace_back(temp);
+        original.erase(0, original.find(delim) + delim.size());
     }
-    if (temp.size() > 0) result.push_back(temp);
+    if (original.size() > 0) result.emplace_back(original);
+    if (result.size() == 0) result.emplace_back(original);
     return result;
 }
 
 void ltrim(std::string& original, std::string cutset)
 {
-    std::vector<std::string> cut_chars = split(cutset, " ");
+    std::vector<std::string> cut_chars = split(cutset, "");
     if (starts_with_any(original, cut_chars)) {
         original.erase(0, 1);
     }
@@ -348,7 +325,7 @@ void ltrim(std::string& original, std::string cutset)
 
 void rtrim(std::string& original, std::string cutset)
 {
-    std::vector<std::string> cut_chars = split(cutset, " ");
+    std::vector<std::string> cut_chars = split(cutset, "");
     while (ends_with_any(original, cut_chars)) {
         original.erase(original.size()-1, 1);
     }

@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     std::string command = handle_command_construction(L);
     std::cout << command << std::endl;
     std::pair<int, std::string> err = OS::run_command(command);
-    if (check_error_passive(err.first, "Error running compilation command.")) return 1;
+    if (check_error_passive(err.first, err.second)) return 1;
     std::cout << "Compiled successfully!" << std::endl;
 
     // Handle post-build scripts
