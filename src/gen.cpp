@@ -22,6 +22,12 @@ size_t handle_cl_args(int argc, char** argv, lua_State* L)
         return 0;
     }
     else if (argv[1] == std::string("watch")) {
+        if (argc > 2) {
+            if (argv[2] == std::string("clean")) {
+                clean_prev_json(L);
+                return 0;
+            }
+        }
         size_t err = generate_watcher_structure(L);
         return err;
     }

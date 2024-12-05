@@ -1027,3 +1027,12 @@ std::string get_config_value(lua_State* L, std::string field)
     }
     return result;
 }
+
+void clean_prev_json(lua_State* L)
+{
+    std::string path = get_config_value(L, "src_dir");
+    if (path.size() > 0) path += "/watcher/prev.json";
+    else path = "watcher/prev.json";
+    write_string_to_file(path, "{}");
+    std::cout << "prev.json cleaned successfully!" << std::endl;
+}

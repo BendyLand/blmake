@@ -17,3 +17,4 @@ std::string get_blmake_config_type(lua_State* L);
 std::string get_config_value(lua_State* L, std::string field);
 void run_pre_build_script(lua_State* L);
 void run_post_build_script(lua_State* L);
+void clean_prev_json(lua_State* L);
