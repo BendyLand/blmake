@@ -4,13 +4,13 @@
 #include "templates/simple_build_template.h"
 #include "templates/tiny_build_template.h"
 #include "templates/test_build_template.h"
+#include "watcher_config.h"
 
-int handle_cl_args(int argc, char** argv)
+size_t handle_cl_args(int argc, char** argv, lua_State* L)
 {
     if (argv[1] == std::string("gen")) {
         size_t err = handle_template_generation(argc, argv);
-        if (err) return 1;
-        return 0;
+        return err;
     }
     else if (argv[1] == std::string("help")) {
         print_help_menu();
@@ -21,52 +21,88 @@ int handle_cl_args(int argc, char** argv)
         // align_config_comments();
         return 0;
     }
+    else if (argv[1] == std::string("watch")) {
+        size_t err = generate_watcher_structure(L);
+        return err;
+    }
     return 1;
+}
+
+size_t generate_watcher_structure(lua_State* L)
+{
+    std::string watcher_binary = (char*)src_watcher_watcher;
+    std::string prev_json = reinterpret_cast<const char*>(src_watcher_prev_json);
+    std::string src_path = "";
+    std::string config_type = get_blmake_config_type(L);
+    lua_getglobal(L, config_type.c_str());
+    lua_getfield(L, -1, "src_dir");
+    if (lua_isstring(L, -1)) {
+        std::string src_dir = lua_tostring(L, -1);
+        sanitize(src_dir);
+        if (!src_dir.empty()) {
+            src_path += src_dir + "/";
+        }
+    }
+    lua_pop(L, 1);
+    src_path += "watcher";
+    std::filesystem::create_directory(src_path);
+#if OS_UNIX_LIKE_DEFINED
+    size_t err1 = write_binary_data_to_file(src_path + "/watcher", src_watcher_watcher, src_watcher_watcher_len);
+    std::string permissions_cmd = "chmod +x " + src_path + "/watcher";
+    OS::run_command(permissions_cmd);
+#else 
+    size_t err1 = 0; //! temporary until Windows implementation works
+#endif
+    size_t err2 = write_string_to_file(src_path + "/prev.json", prev_json);
+    size_t err3 = write_string_to_file(src_path + "/recompile_list.txt", "");
+    size_t any_err = err1 | err2 | err3; 
+    if (any_err == 0) std::cout << "Watcher structure generated successfully!" << std::endl;
+    return any_err;
 }
 
 size_t generate_full_build()
 {
     std::string contents = ""; 
     for (size_t i = 0; i < full_build_template_txt_len; i++) contents += full_build_template_txt[i];
-    write_string_to_file("./blmake.lua", contents);
-    std::cout << "Config file generated successfully!" << std::endl;
-    return 0;
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
 }
 
 size_t generate_build()
 {
     std::string contents = ""; 
     for (size_t i = 0; i < build_template_txt_len; i++) contents += build_template_txt[i];
-    write_string_to_file("./blmake.lua", contents);
-    std::cout << "Config file generated successfully!" << std::endl;
-    return 0;
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
 }
 
 size_t generate_simple_build()
 {
     std::string contents = ""; 
     for (size_t i = 0; i < simple_build_template_txt_len; i++) contents += simple_build_template_txt[i];
-    write_string_to_file("./blmake.lua", contents);
-    std::cout << "Config file generated successfully!" << std::endl;
-    return 0;
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
 }
 
 size_t generate_tiny_build()
 {
     std::string contents = ""; 
     for (size_t i = 0; i < tiny_build_template_txt_len; i++) contents += tiny_build_template_txt[i];
-    write_string_to_file("./blmake.lua", contents);
-    std::cout << "Config file generated successfully!" << std::endl;
-    return 0;
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
 }
 
 size_t generate_test_build()
 {
     std::string contents = ""; 
     for (size_t i = 0; i < test_build_template_txt_len; i++) contents += test_build_template_txt[i];
-    write_string_to_file("./blmake.lua", contents);
-    std::cout << "Config file generated successfully!" << std::endl;
-    return 0;
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
 }
 
 size_t handle_template_generation(int argc, char** argv)

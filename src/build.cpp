@@ -932,21 +932,14 @@ std::string construct_test_build_command(lua_State* L)
     return command;
 }
 
-//? Watcher command is run inside each branch below.
-// std::vector<std::string> handle_command_construction(lua_State* L)
 std::string handle_command_construction(lua_State* L)
 {
-    // std::vector<std::string> commands;
     std::string command; 
     if (check_table(L, "Full_build")) {
         command = construct_full_build_command(L);
-        // commands = construct_incremental_full_build_commands(L);
-        // if (commands.size() == 0) return {};
     }
     else if (check_table(L, "Build")) {
         command = construct_build_command(L);
-        // commands = construct_incremental_build_commands(L);
-        // if (commands.size() == 0) return {};
     }
     else if (check_table(L, "Simple_build")) {
         command = construct_simple_build_command(L);
@@ -962,4 +955,75 @@ std::string handle_command_construction(lua_State* L)
         exit(1);
 	}
     return command;
+}
+
+std::vector<std::string> handle_incremental_command_construction(lua_State* L)
+{
+    std::vector<std::string> commands;
+    if (check_table(L, "Full_build")) {
+        commands = construct_incremental_full_build_commands(L);
+        if (commands.size() == 0) return {};
+    }
+    else if (check_table(L, "Build")) {
+        commands = construct_incremental_build_commands(L);
+        if (commands.size() == 0) return {};
+    }
+    else if (check_table(L, "Simple_build")) {
+        // command = construct_simple_build_command(L);
+    }
+    else if (check_table(L, "Tiny_build")) {
+        // command = construct_tiny_build_command(L);
+    }
+    else if (check_table(L, "Test_build")) {
+        // command = construct_test_build_command(L);
+    }
+	else {
+        std::cerr << "No valid config tables found." << std::endl;
+        exit(1);
+	}
+    return commands;
+}
+
+std::string get_blmake_config_type(lua_State* L)
+{
+    std::string result;
+    if (check_table(L, "Full_build")) {
+        result = "Full_build";
+    }
+    else if (check_table(L, "Build")) {
+        result = "Build";
+    }
+    else if (check_table(L, "Simple_build")) {
+        result = "Simple_build";
+    }
+    else if (check_table(L, "Tiny_build")) {
+        result = "Tiny_build";
+    }
+    else if (check_table(L, "Test_build")) {
+        result = "Test_build";
+    }
+	else {
+        std::cerr << "No valid config tables found." << std::endl;
+        exit(1);
+	}
+    return result;
+}
+
+std::string get_config_value(lua_State* L, std::string field)
+{
+	std::string result = "";
+    std::string config_type = get_blmake_config_type(L);
+    lua_getglobal(L, config_type.c_str());
+    lua_getfield(L, -1, field.c_str());
+    if (lua_isstring(L, -1)) {
+        std::string value = lua_tostring(L, -1);
+        sanitize(value);
+        if (!value.empty()) {
+            result = value; 
+        }
+    }
+    else if (lua_istable(L, -1)) {
+        result = get_table_commands(L, "");
+    }
+    return result;
 }

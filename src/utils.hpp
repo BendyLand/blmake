@@ -41,6 +41,7 @@ std::string perform_pre_build_path_extraction(lua_State* L, const char* path);
 bool perform_pre_build_check(lua_State* L, const char* path);
 int check_error_passive(int err, std::string message);
 std::vector<std::string> filter_file_list(const std::vector<std::string>& vec);
+size_t write_binary_data_to_file(const std::string& destFilePath, const unsigned char contents[], size_t size);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, std::vector<T> vec)
