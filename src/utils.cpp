@@ -20,13 +20,15 @@ void check_error_fatal(int err, std::string message)
 std::string filter_files(std::string files, std::string check)
 {
     std::vector<std::string> originals = split(files, " ");
+    std::vector<std::string> check_files = split(check, "\n");
     std::vector<std::string> result;
     result.reserve(originals.size());
     for (std::string original : originals) {
-        if (check.find(original) != std::string::npos) {
-            result.emplace_back(original);
+        for (std::string check : check_files) {
+            if (original == check) result.emplace_back(original);
         }
     }
+    
     return join(result, " ");
 }
 
@@ -300,17 +302,18 @@ std::vector<std::string> split(std::string& original, const std::string& delim)
 {
     std::vector<std::string> result;
     std::string temp = "";
+    std::string copy = original;
     if (delim.size() == 0) return chars(original);
-    if (original.size() == 1) {
+    if (original.size() <= 1) {
         result.emplace_back(original);
         return result;
     }
-    while (original.find(delim) != std::string::npos) {
-        temp = original.substr(0, original.find(delim));
+    while (copy.find(delim) != std::string::npos) {
+        temp = copy.substr(0, copy.find(delim));
         result.emplace_back(temp);
-        original.erase(0, original.find(delim) + delim.size());
+        copy.erase(0, copy.find(delim) + delim.size());
     }
-    if (original.size() > 0) result.emplace_back(original);
+    if (copy.size() > 0) result.emplace_back(copy);
     if (result.size() == 0) result.emplace_back(original);
     return result;
 }
@@ -347,6 +350,7 @@ bool check_table(lua_State* L, const char* tableName)
 
 std::string join(std::vector<std::string> vec, std::string delim)
 {
+    if (vec.size() == 0) return "";
     if (vec.size() == 1) return vec[0];
     std::string result = "";
     int len = vec.size();
@@ -414,4 +418,19 @@ void print_help_menu()
     "Usage:\nblmake <command> <args>\n\n" << \
     "The available commands are:\n" << \
     "gen <config_type> (full, build, simple, tiny, test)\nhelp\n" << std::endl;
+}
+
+std::vector<std::string> filter_file_list(const std::vector<std::string>& vec)
+{
+    std::vector<std::string> result;
+    for (std::string entry : vec) {
+        for (char c : entry) {
+            if (!isspace(c)) {
+                result.emplace_back(entry);
+                goto Next;
+            }
+        }
+        Next:
+    }
+    return result;
 }

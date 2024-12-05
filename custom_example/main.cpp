@@ -6,8 +6,9 @@ using std::string; using std::cout; using std::endl;
 
 int main()
 {
-    cout << "Hello change!" << endl;
+    cout << "Hello old new test!" << endl;
     string test1 = "test";
+
     string test2 = "#include <stdio.h>";
     string test3 = "#define None 0";
     string test4 = "#include \"utils.h\"";

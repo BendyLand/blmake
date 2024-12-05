@@ -17,7 +17,7 @@ Build = {
     output = "test",                           -- e.g., "myprogram"
     src_dir = "",                              -- Source directory
     out_dir = "",                              -- Output directory
-    hooks = {post_build = "./run.sh"},         -- e.g., {pre_build = "scripts/pre_build.sh"} 
+    hooks = {},                                -- e.g., {pre_build = "scripts/pre_build.sh"} 
 }
 
 -- Customize behavior below!
