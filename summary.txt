@@ -1,0 +1,1869 @@
+// build.cpp
+#include "build.hpp"
+
+void run_pre_build_script(lua_State* L)
+{
+    std::string pre_build_path = extract_pre_build_path(L);
+    if (validate_script_ext(pre_build_path)) {
+        if (ensure_executable(pre_build_path.c_str())) {
+            std::cout << "Running pre-build script: " << pre_build_path << std::endl;
+            std::pair<int, std::string> err = OS::run_command(pre_build_path);
+            std::string err_message = "Error running pre-build script: " + pre_build_path; 
+            check_error_fatal(err.first, err_message);
+            if (err.second.size() > 0) {
+                std::cout << err.second << std::endl;
+            }
+        }
+    }
+    else {
+        std::cout << "Error: Invalid extension. No script run." << std::endl;
+    }
+}
+
+void run_post_build_script(lua_State* L)
+{
+    std::string post_build_path = extract_post_build_path(L);
+    if (validate_script_ext(post_build_path)) {
+        if (ensure_executable(post_build_path.c_str())) {
+            std::cout << "Running post-build script: " << post_build_path.c_str() << std::endl;
+            std::pair<int, std::string> err = OS::run_command(post_build_path);
+            std::string message = "Error running post-build script: " + post_build_path; 
+            check_error_fatal(err.first, message);
+            if (err.second.size() > 0) {
+                std::cout << err.second << std::endl;
+            }
+        }
+    }
+    else {
+        std::cout << "Error: Invalid extension. No script run." << std::endl;
+    }
+}
+
+std::vector<std::string> construct_incremental_full_build_commands(lua_State* L)
+{
+    std::string command = "";
+    std::vector<std::string> result;
+    std::array<std::string, 3> double_cmds = {"", "", ""};
+    lua_getglobal(L, "Full_build");
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "preproc_opts");
+    if (lua_istable(L, -1)) {
+        std::string preproc_opts = get_table_commands(L, "");
+        sanitize(preproc_opts);
+        if (!preproc_opts.empty()) {
+            command += " " + preproc_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "lang_exts");
+    if (lua_istable(L, -1)) {
+        std::string lang_exts = get_table_commands(L, "");
+        sanitize(lang_exts);
+        if (!lang_exts.empty()) {
+            command += " " + lang_exts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "optimization");
+    if (lua_isstring(L, -1)) {
+        std::string optimization = lua_tostring(L, -1);
+        sanitize(optimization);
+        if (!optimization.empty()) {
+            double_cmds[0] = optimization;
+            command += " " + optimization;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "profiling");
+    if (lua_isstring(L, -1)) {
+        std::string profiling = lua_tostring(L, -1);
+        sanitize(profiling);
+        if (!profiling.empty()) {
+            double_cmds[1] = profiling;
+            command += " " + profiling;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "platform_opts");
+    if (lua_istable(L, -1)) {
+        std::string platform_opts = get_table_commands(L, "");
+        sanitize(platform_opts);
+        if (!platform_opts.empty()) {
+            double_cmds[2] = platform_opts;
+            command += " " + platform_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "include_dirs");
+    if (lua_istable(L, -1)) {
+        std::string include_dirs = get_table_commands(L, "-I");
+        sanitize(include_dirs);
+        if (!include_dirs.empty()) {
+            command += " " + include_dirs;
+        }
+    }
+    lua_pop(L, 1);
+    std::string prefix = "";
+    lua_getfield(L, -1, "src_dir");
+    if (lua_isstring(L, -1)) {
+        std::string src_dir = lua_tostring(L, -1);
+        sanitize(src_dir);
+        prefix = src_dir;
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "lto");
+    if (lua_isstring(L, -1)) {
+        std::string lto = lua_tostring(L, -1);
+        sanitize(lto);
+        if (!lto.empty()) {
+            command += " " + lto;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "warnings");
+    if (lua_istable(L, -1)) {
+        std::string warnings = get_table_commands(L, "-W");
+        sanitize(warnings);
+        if (!warnings.empty()) {
+            command += " " + warnings;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "debugging");
+    if (lua_isboolean(L, -1)) {
+        bool debugging = lua_toboolean(L, -1);
+        if (debugging) {
+            command += " -g";
+        }
+    }
+    lua_pop(L, 1);
+    std::string output = "";
+    lua_getfield(L, -1, "out_dir");
+    if (lua_isstring(L, -1)) {
+        std::string out_dir = lua_tostring(L, -1);
+        sanitize(out_dir);
+        if (!out_dir.empty()) {
+            output += out_dir + "/";
+        }
+    }
+    lua_pop(L, 1);
+    command += " -c ";
+    lua_getfield(L, -1, "files");
+    std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    OS::run_command(watcher_cmd);
+    std::string check_file = read_file("src/watcher/recompile_list.txt");
+    std::vector<std::string> file_list; 
+    std::vector<std::string> all_files; 
+    if (lua_istable(L, -1)) {
+        if (!prefix.empty()) prefix += "/";
+        std::string files = get_table_commands(L, prefix);
+        sanitize(files);
+        all_files = split(files, " ");
+        files = filter_files(files, check_file);
+        file_list = filter_file_list(split(files, " "));
+        if (file_list.size() == 0) return result;
+        for (std::string file : file_list) {
+            std::string temp = command + file + " ";
+            std::string output = "-o " + file.substr(0, file.find_last_of(".")) + ".o";
+            result.emplace_back(temp + output);
+        }
+    }
+    lua_pop(L, 1);
+    std::string link_command = "";
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            link_command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+    }
+    lua_pop(L, 1);
+    if (double_cmds[0].size() > 0) link_command += " " + double_cmds[0];
+    if (double_cmds[1].size() > 0) link_command += " " + double_cmds[1];
+    if (double_cmds[2].size() > 0) link_command += " " + double_cmds[2];
+    lua_getfield(L, -1, "linker_opts");
+    if (lua_istable(L, -1)) {
+        std::string linker_opts = get_table_commands(L, "-L");
+        sanitize(linker_opts);
+        if (!linker_opts.empty()) {
+            link_command += " " + linker_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "dependencies");
+    if (lua_istable(L, -1)) {
+        std::string dependencies = get_table_commands(L, "-l");
+        sanitize(dependencies);
+        if (!dependencies.empty()) {
+            link_command += " " + dependencies;
+        }
+    }
+    lua_pop(L, 1);
+    for (std::string file : all_files) {
+        std::string output = file.substr(0, file.find_last_of(".")) + ".o";
+        link_command += " " + output;
+    }
+    std::string out_dir = "";
+    lua_getfield(L, -1, "out_dir");
+    if (lua_isstring(L, -1)) {
+        std::string value = lua_tostring(L, -1);
+        sanitize(value);
+        if (!value.empty()) {
+            out_dir += "-o " + value + "/";
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "output");
+    if (lua_isstring(L, -1)) {
+        std::string out = lua_tostring(L, -1);
+        sanitize(out);
+        if (!out.empty()) {
+            out_dir += out;
+        }
+    }
+    lua_pop(L, 1);
+    link_command += " " + out_dir;
+    result.emplace_back(link_command);
+    return result;
+}
+
+std::string construct_full_build_command(lua_State* L)
+{
+    std::string command = "";
+    lua_getglobal(L, "Full_build");
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "preproc_opts");
+    if (lua_istable(L, -1)) {
+        std::string preproc_opts = get_table_commands(L, "");
+        sanitize(preproc_opts);
+        if (!preproc_opts.empty()) {
+            command += " " + preproc_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "lang_exts");
+    if (lua_istable(L, -1)) {
+        std::string lang_exts = get_table_commands(L, "");
+        sanitize(lang_exts);
+        if (!lang_exts.empty()) {
+            command += " " + lang_exts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "optimization");
+    if (lua_isstring(L, -1)) {
+        std::string optimization = lua_tostring(L, -1);
+        sanitize(optimization);
+        if (!optimization.empty()) {
+            command += " " + optimization;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "profiling");
+    if (lua_isstring(L, -1)) {
+        std::string profiling = lua_tostring(L, -1);
+        sanitize(profiling);
+        if (!profiling.empty()) {
+            command += " " + profiling;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "platform_opts");
+    if (lua_istable(L, -1)) {
+        std::string platform_opts = get_table_commands(L, "");
+        sanitize(platform_opts);
+        if (!platform_opts.empty()) {
+            command += " " + platform_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "include_dirs");
+    if (lua_istable(L, -1)) {
+        std::string include_dirs = get_table_commands(L, "-I");
+        sanitize(include_dirs);
+        if (!include_dirs.empty()) {
+            command += " " + include_dirs;
+        }
+    }
+    lua_pop(L, 1);
+    std::string prefix = "";
+    lua_getfield(L, -1, "src_dir");
+    if (lua_isstring(L, -1)) {
+        std::string src_dir = lua_tostring(L, -1);
+        sanitize(src_dir);
+        prefix = src_dir;
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "files");
+    if (lua_istable(L, -1)) {
+        if (!prefix.empty()) prefix += "/";
+        std::string files = get_table_commands(L, prefix);
+        sanitize(files);
+        if (!files.empty()) {
+            command += " " + files;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "lto");
+    if (lua_isstring(L, -1)) {
+        std::string lto = lua_tostring(L, -1);
+        sanitize(lto);
+        if (!lto.empty()) {
+            command += " " + lto;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "linker_opts");
+    if (lua_istable(L, -1)) {
+        std::string linker_opts = get_table_commands(L, "-L");
+        sanitize(linker_opts);
+        if (!linker_opts.empty()) {
+            command += " " + linker_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "dependencies");
+    if (lua_istable(L, -1)) {
+        std::string dependencies = get_table_commands(L, "-l");
+        sanitize(dependencies);
+        if (!dependencies.empty()) {
+            command += " " + dependencies;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "warnings");
+    if (lua_istable(L, -1)) {
+        std::string warnings = get_table_commands(L, "-W");
+        sanitize(warnings);
+        if (!warnings.empty()) {
+            command += " " + warnings;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "debugging");
+    if (lua_isboolean(L, -1)) {
+        bool debugging = lua_toboolean(L, -1);
+        if (debugging) {
+            command += " -g";
+        }
+    }
+    lua_pop(L, 1);
+    std::string output = "";
+    lua_getfield(L, -1, "out_dir");
+    if (lua_isstring(L, -1)) {
+        std::string out_dir = lua_tostring(L, -1);
+        sanitize(out_dir);
+        if (!out_dir.empty()) {
+            output += out_dir + "/";
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "output");
+    if (lua_isstring(L, -1)) {
+        std::string out = lua_tostring(L, -1);
+        sanitize(out);
+        if (!out.empty()) {
+            output += out;
+        }
+    }
+    lua_pop(L, 1);
+    if (!output.empty()) {
+        command += " -o " + output;
+    }
+    return command;
+}
+
+std::vector<std::string> construct_incremental_build_commands(lua_State* L)
+{
+    std::string command = "";
+    std::vector<std::string> result;
+    std::array<std::string, 1> double_cmds = {""};
+    lua_getglobal(L, "Build");
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "preproc_opts");
+    if (lua_istable(L, -1)) {
+        std::string preproc_opts = get_table_commands(L, "");
+        sanitize(preproc_opts);
+        if (!preproc_opts.empty()) {
+            command += " " + preproc_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "lang_exts");
+    if (lua_istable(L, -1)) {
+        std::string lang_exts = get_table_commands(L, "");
+        sanitize(lang_exts);
+        if (!lang_exts.empty()) {
+            command += " " + lang_exts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "optimization");
+    if (lua_isstring(L, -1)) {
+        std::string optimization = lua_tostring(L, -1);
+        sanitize(optimization);
+        if (!optimization.empty()) {
+            double_cmds[0] = optimization;
+            command += " " + optimization;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "include_dirs");
+    if (lua_istable(L, -1)) {
+        std::string include_dirs = get_table_commands(L, "-I");
+        sanitize(include_dirs);
+        if (!include_dirs.empty()) {
+            command += " " + include_dirs;
+        }
+    }
+    lua_pop(L, 1);
+    std::string prefix = "";
+    lua_getfield(L, -1, "src_dir");
+    if (lua_isstring(L, -1)) {
+        std::string src_dir = lua_tostring(L, -1);
+        sanitize(src_dir);
+        prefix = src_dir;
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "debugging");
+    if (lua_isboolean(L, -1)) {
+        bool debugging = lua_toboolean(L, -1);
+        if (debugging) {
+            command += " -g";
+        }
+    }
+    lua_pop(L, 1);
+    std::string output = "";
+    lua_getfield(L, -1, "out_dir");
+    if (lua_isstring(L, -1)) {
+        std::string out_dir = lua_tostring(L, -1);
+        sanitize(out_dir);
+        if (!out_dir.empty()) {
+            output += out_dir + "/";
+        }
+    }
+    lua_pop(L, 1);
+    command += " -c ";
+    lua_getfield(L, -1, "files");
+    std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    OS::run_command(watcher_cmd);
+    std::string check_file = read_file("src/watcher/recompile_list.txt");
+    std::vector<std::string> file_list; 
+    std::vector<std::string> all_files; 
+    if (lua_istable(L, -1)) {
+        if (!prefix.empty()) prefix += "/";
+        std::string files = get_table_commands(L, prefix);
+        sanitize(files);
+        all_files = split(files, " ");
+        files = filter_files(files, check_file);
+        file_list = filter_file_list(split(files, " "));
+        if (file_list.size() == 0) return result;
+        for (std::string file : file_list) {
+            std::string temp = command + file + " ";
+            std::string output = "-o " + file.substr(0, file.find_last_of(".")) + ".o";
+            result.emplace_back(temp + output);
+        }
+    }
+    lua_pop(L, 1);
+    std::string link_command = "";
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            link_command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+    }
+    lua_pop(L, 1);
+    if (double_cmds[0].size() > 0) link_command += " " + double_cmds[0];
+    lua_getfield(L, -1, "linker_opts");
+    if (lua_istable(L, -1)) {
+        std::string linker_opts = get_table_commands(L, "-L");
+        sanitize(linker_opts);
+        if (!linker_opts.empty()) {
+            link_command += " " + linker_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "dependencies");
+    if (lua_istable(L, -1)) {
+        std::string dependencies = get_table_commands(L, "-l");
+        sanitize(dependencies);
+        if (!dependencies.empty()) {
+            link_command += " " + dependencies;
+        }
+    }
+    lua_pop(L, 1);
+    for (std::string file : all_files) {
+        std::string output = file.substr(0, file.find_last_of(".")) + ".o";
+        link_command += " " + output;
+    }
+    std::string out_dir = "";
+    lua_getfield(L, -1, "out_dir");
+    if (lua_isstring(L, -1)) {
+        std::string value = lua_tostring(L, -1);
+        sanitize(value);
+        if (!value.empty()) {
+            out_dir += "-o " + value + "/";
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "output");
+    if (lua_isstring(L, -1)) {
+        std::string out = lua_tostring(L, -1);
+        sanitize(out);
+        if (!out.empty()) {
+            out_dir += out;
+        }
+    }
+    lua_pop(L, 1);
+    link_command += " " + out_dir;
+    result.emplace_back(link_command);
+    return result;
+}
+
+std::string construct_build_command(lua_State* L)
+{
+    std::string command = "";
+    lua_getglobal(L, "Build");
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "preproc_opts");
+    if (lua_istable(L, -1)) {
+        std::string preproc_opts = get_table_commands(L, "");
+        sanitize(preproc_opts);
+        if (!preproc_opts.empty()) {
+            command += " " + preproc_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "lang_exts");
+    if (lua_istable(L, -1)) {
+        std::string lang_exts = get_table_commands(L, "");
+        sanitize(lang_exts);
+        if (!lang_exts.empty()) {
+            command += " " + lang_exts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "optimization");
+    if (lua_isstring(L, -1)) {
+        std::string optimization = lua_tostring(L, -1);
+        sanitize(optimization);
+        if (!optimization.empty()) {
+            command += " " + optimization;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "include_dirs");
+    if (lua_istable(L, -1)) {
+        std::string include_dirs = get_table_commands(L, "-I");
+        sanitize(include_dirs);
+        if (!include_dirs.empty()) {
+            command += " " + include_dirs;
+        }
+    }
+    lua_pop(L, 1);
+    std::string prefix = "";
+    lua_getfield(L, -1, "src_dir");
+    if (lua_isstring(L, -1)) {
+        std::string src_dir = lua_tostring(L, -1);
+        sanitize(src_dir);
+        prefix = src_dir;
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "files");
+    if (lua_istable(L, -1)) {
+        if (!prefix.empty()) prefix += "/";
+        std::string files = get_table_commands(L, prefix);
+        sanitize(files);
+        if (!files.empty()) {
+            command += " " + files;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "linker_opts");
+    if (lua_istable(L, -1)) {
+        std::string linker_opts = get_table_commands(L, "-L");
+        sanitize(linker_opts);
+        if (!linker_opts.empty()) {
+            command += " " + linker_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "dependencies");
+    if (lua_istable(L, -1)) {
+        std::string dependencies = get_table_commands(L, "-l");
+        sanitize(dependencies);
+        if (!dependencies.empty()) {
+            command += " " + dependencies;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "debugging");
+    if (lua_isboolean(L, -1)) {
+        bool debugging = lua_toboolean(L, -1);
+        if (debugging) {
+            command += " -g";
+        }
+    }
+    lua_pop(L, 1);
+    std::string output = "";
+    lua_getfield(L, -1, "out_dir");
+    if (lua_isstring(L, -1)) {
+        std::string out_dir = lua_tostring(L, -1);
+        sanitize(out_dir);
+        if (!out_dir.empty()) {
+            output += out_dir + "/";
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "output");
+    if (lua_isstring(L, -1)) {
+        std::string out = lua_tostring(L, -1);
+        sanitize(out);
+        if (!out.empty()) {
+            output += out;
+        }
+    }
+    lua_pop(L, 1);
+    if (!output.empty()) {
+        command += " -o " + output;
+    }
+    return command;
+}
+
+std::string construct_simple_build_command(lua_State* L)
+{
+    std::string command = "";
+    lua_getglobal(L, "Simple_build");
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "lang_exts");
+    if (lua_istable(L, -1)) {
+        std::string lang_exts = get_table_commands(L, "");
+        sanitize(lang_exts);
+        if (!lang_exts.empty()) {
+            command += " " + lang_exts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "include_dirs");
+    if (lua_istable(L, -1)) {
+        std::string include_dirs = get_table_commands(L, "-I");
+        sanitize(include_dirs);
+        if (!include_dirs.empty()) {
+            command += " " + include_dirs;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "files");
+    if (lua_istable(L, -1)) {
+        std::string files = get_table_commands(L, "");
+        sanitize(files);
+        if (!files.empty()) {
+            command += " " + files;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "dependencies");
+    if (lua_istable(L, -1)) {
+        std::string dependencies = get_table_commands(L, "-l");
+        sanitize(dependencies);
+        if (!dependencies.empty()) {
+            command += " " + dependencies;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "debugging");
+    if (lua_isboolean(L, -1)) {
+        bool debugging = lua_toboolean(L, -1);
+        if (debugging) {
+            command += " -g";
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "output");
+    std::string output;
+    if (lua_isstring(L, -1)) {
+        output = lua_tostring(L, -1);
+        sanitize(output);
+    }
+    lua_pop(L, 1);
+    if (!output.empty()) {
+        command += " -o " + output;
+    }
+    return command;
+}
+
+std::string construct_tiny_build_command(lua_State* L)
+{
+    std::string command = "";
+    lua_getglobal(L, "Tiny_build");
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, -1, "files");
+    if (lua_istable(L, -1)) {
+        std::string files = get_table_commands(L, "");
+        sanitize(files);
+        if (!files.empty()) {
+            command += " " + files;
+        }
+        lua_pop(L, 1);
+    }
+    std::string output;
+    lua_getfield(L, -1, "output");
+    if (lua_isstring(L, -1)) {
+        output = lua_tostring(L, -1);
+        sanitize(output);
+        lua_pop(L, 1);
+    }
+    if (!output.empty()) {
+        command += " -o " + output;
+    }
+    return command;
+}
+
+std::string construct_test_build_command(lua_State* L)
+{
+    std::string command = "";
+    lua_getglobal(L, "Test_build");
+    lua_getfield(L, -1, "compiler");
+    if (lua_isstring(L, -1)) {
+        std::string compiler = lua_tostring(L, -1);
+        sanitize(compiler);
+        if (is_valid_compiler(compiler)) {
+            command += compiler;
+        }
+        else {
+            std::cerr << "Error: Invalid compiler." << std::endl;
+            print_valid_compilers();
+            exit(1);
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "preproc_opts");
+    if (lua_istable(L, -1)) {
+        std::string preproc_opts = get_table_commands(L, "");
+        sanitize(preproc_opts);
+        if (!preproc_opts.empty()) {
+            command += " " + preproc_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "lang_exts");
+    if (lua_istable(L, -1)) {
+        std::string lang_exts = get_table_commands(L, "");
+        sanitize(lang_exts);
+        if (!lang_exts.empty()) {
+            command += " " + lang_exts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "optimization");
+    if (lua_isstring(L, -1)) {
+        std::string optimization = lua_tostring(L, -1);
+        sanitize(optimization);
+        if (!optimization.empty()) {
+            command += " " + optimization;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "include_dirs");
+    if (lua_istable(L, -1)) {
+        std::string include_dirs = get_table_commands(L, "-I");
+        sanitize(include_dirs);
+        if (!include_dirs.empty()) {
+            command += " " + include_dirs;
+        }
+    }
+    lua_pop(L, 1);
+    std::string prefix = "";
+    lua_getfield(L, -1, "src_dir");
+    if (lua_isstring(L, -1)) {
+        std::string src_dir = lua_tostring(L, -1);
+        sanitize(src_dir);
+        prefix = src_dir;
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "files");
+    if (lua_istable(L, -1)) {
+        if (!prefix.empty()) prefix += "/";
+        std::string files = get_table_commands(L, prefix);
+        sanitize(files);
+        if (!files.empty()) {
+            command += " " + files;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "linker_opts");
+    if (lua_istable(L, -1)) {
+        std::string linker_opts = get_table_commands(L, "-L");
+        sanitize(linker_opts);
+        if (!linker_opts.empty()) {
+            command += " " + linker_opts;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "dependencies");
+    if (lua_istable(L, -1)) {
+        std::string dependencies = get_table_commands(L, "-l");
+        sanitize(dependencies);
+        if (!dependencies.empty()) {
+            command += " " + dependencies;
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "debugging");
+    if (lua_isboolean(L, -1)) {
+        bool debugging = lua_toboolean(L, -1);
+        if (debugging) {
+            command += " -g";
+        }
+    }
+    lua_pop(L, 1);
+    std::string output = "";
+    lua_getfield(L, -1, "out_dir");
+    if (lua_isstring(L, -1)) {
+        std::string out_dir = lua_tostring(L, -1);
+        sanitize(out_dir);
+        if (!out_dir.empty()) {
+            output += out_dir + "/";
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "output");
+    if (lua_isstring(L, -1)) {
+        std::string out = lua_tostring(L, -1);
+        sanitize(out);
+        if (!out.empty()) {
+            output += out;
+        }
+    }
+    lua_pop(L, 1);
+    if (!output.empty()) {
+        command += " -o " + output;
+    }
+    return command;
+}
+
+std::string handle_command_construction(lua_State* L)
+{
+    std::string command; 
+    if (check_table(L, "Full_build")) {
+        command = construct_full_build_command(L);
+    }
+    else if (check_table(L, "Build")) {
+        command = construct_build_command(L);
+    }
+    else if (check_table(L, "Simple_build")) {
+        command = construct_simple_build_command(L);
+    }
+    else if (check_table(L, "Tiny_build")) {
+        command = construct_tiny_build_command(L);
+    }
+    else if (check_table(L, "Test_build")) {
+        command = construct_test_build_command(L);
+    }
+	else {
+        std::cerr << "No valid config tables found." << std::endl;
+        exit(1);
+	}
+    return command;
+}
+
+std::vector<std::string> handle_incremental_command_construction(lua_State* L)
+{
+    std::vector<std::string> commands;
+    if (check_table(L, "Full_build")) {
+        commands = construct_incremental_full_build_commands(L);
+        if (commands.size() == 0) return {};
+    }
+    else if (check_table(L, "Build")) {
+        commands = construct_incremental_build_commands(L);
+        if (commands.size() == 0) return {};
+    }
+    else if (check_table(L, "Simple_build")) {
+        // command = construct_simple_build_command(L);
+    }
+    else if (check_table(L, "Tiny_build")) {
+        // command = construct_tiny_build_command(L);
+    }
+    else if (check_table(L, "Test_build")) {
+        // command = construct_test_build_command(L);
+    }
+	else {
+        std::cerr << "No valid config tables found." << std::endl;
+        exit(1);
+	}
+    return commands;
+}
+
+std::string get_blmake_config_type(lua_State* L)
+{
+    std::string result;
+    if (check_table(L, "Full_build")) {
+        result = "Full_build";
+    }
+    else if (check_table(L, "Build")) {
+        result = "Build";
+    }
+    else if (check_table(L, "Simple_build")) {
+        result = "Simple_build";
+    }
+    else if (check_table(L, "Tiny_build")) {
+        result = "Tiny_build";
+    }
+    else if (check_table(L, "Test_build")) {
+        result = "Test_build";
+    }
+	else {
+        std::cerr << "No valid config tables found." << std::endl;
+        exit(1);
+	}
+    return result;
+}
+
+std::string get_config_value(lua_State* L, std::string field)
+{
+	std::string result = "";
+    std::string config_type = get_blmake_config_type(L);
+    lua_getglobal(L, config_type.c_str());
+    lua_getfield(L, -1, field.c_str());
+    if (lua_isstring(L, -1)) {
+        std::string value = lua_tostring(L, -1);
+        sanitize(value);
+        if (!value.empty()) {
+            result = value; 
+        }
+    }
+    else if (lua_istable(L, -1)) {
+        result = get_table_commands(L, "");
+    }
+    return result;
+}
+
+void clean_prev_json(lua_State* L)
+{
+    std::string path = get_config_value(L, "src_dir");
+    if (path.size() > 0) path += "/watcher/prev.json";
+    else path = "watcher/prev.json";
+    write_string_to_file(path, "{}");
+    std::cout << "prev.json cleaned successfully!" << std::endl;
+}
+
+// gen.cpp
+#include "gen.hpp"
+#include "templates/full_build_template.h"
+#include "templates/build_template.h"
+#include "templates/simple_build_template.h"
+#include "templates/tiny_build_template.h"
+#include "templates/test_build_template.h"
+#include "watcher_config.h"
+
+size_t handle_cl_args(int argc, char** argv, lua_State* L)
+{
+    if (argv[1] == std::string("gen")) {
+        size_t err = handle_template_generation(argc, argv);
+        return err;
+    }
+    else if (argv[1] == std::string("help")) {
+        print_help_menu();
+        return 0;
+    }
+    else if (argv[1] == std::string("align")) {
+        //todo: write function below
+        // align_config_comments();
+        return 0;
+    }
+    else if (argv[1] == std::string("watch")) {
+        if (argc > 2) {
+            if (argv[2] == std::string("clean")) {
+                clean_prev_json(L);
+                return 0;
+            }
+        }
+        size_t err = generate_watcher_structure(L);
+        return err;
+    }
+    return 1;
+}
+
+size_t generate_watcher_structure(lua_State* L)
+{
+    std::string watcher_binary = (char*)src_watcher_watcher;
+    std::string prev_json = reinterpret_cast<const char*>(src_watcher_prev_json);
+    std::string src_path = "";
+    std::string config_type = get_blmake_config_type(L);
+    lua_getglobal(L, config_type.c_str());
+    lua_getfield(L, -1, "src_dir");
+    if (lua_isstring(L, -1)) {
+        std::string src_dir = lua_tostring(L, -1);
+        sanitize(src_dir);
+        if (!src_dir.empty()) {
+            src_path += src_dir + "/";
+        }
+    }
+    lua_pop(L, 1);
+    src_path += "watcher";
+    std::filesystem::create_directory(src_path);
+#if OS_UNIX_LIKE_DEFINED
+    size_t err1 = write_binary_data_to_file(src_path + "/watcher", src_watcher_watcher, src_watcher_watcher_len);
+    std::string permissions_cmd = "chmod +x " + src_path + "/watcher";
+    OS::run_command(permissions_cmd);
+#else 
+    size_t err1 = 0; //! temporary until Windows implementation works
+#endif
+    size_t err2 = write_string_to_file(src_path + "/prev.json", prev_json);
+    size_t err3 = write_string_to_file(src_path + "/recompile_list.txt", "");
+    size_t any_err = err1 | err2 | err3; 
+    if (any_err == 0) std::cout << "Watcher structure generated successfully!" << std::endl;
+    return any_err;
+}
+
+size_t generate_full_build()
+{
+    std::string contents = ""; 
+    for (size_t i = 0; i < full_build_template_txt_len; i++) contents += full_build_template_txt[i];
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
+}
+
+size_t generate_build()
+{
+    std::string contents = ""; 
+    for (size_t i = 0; i < build_template_txt_len; i++) contents += build_template_txt[i];
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
+}
+
+size_t generate_simple_build()
+{
+    std::string contents = ""; 
+    for (size_t i = 0; i < simple_build_template_txt_len; i++) contents += simple_build_template_txt[i];
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
+}
+
+size_t generate_tiny_build()
+{
+    std::string contents = ""; 
+    for (size_t i = 0; i < tiny_build_template_txt_len; i++) contents += tiny_build_template_txt[i];
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
+}
+
+size_t generate_test_build()
+{
+    std::string contents = ""; 
+    for (size_t i = 0; i < test_build_template_txt_len; i++) contents += test_build_template_txt[i];
+    size_t err = write_string_to_file("./blmake.lua", contents);
+    if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
+    return err;
+}
+
+size_t handle_template_generation(int argc, char** argv)
+{
+    if (argc > 2) {
+        std::string check = to_lower(argv[2]);
+        if (check == std::string("full")) {
+            std::cout << "Generating Full_build in blmake.lua..." << std::endl;
+            size_t err = generate_full_build();
+            if (err) exit(1);
+        }
+        else if (check == std::string("build")) {
+            std::cout << "Generating Build in blmake.lua..." << std::endl;
+            size_t err = generate_build();
+            if (err) exit(1);
+        }
+        else if (check == std::string("simple")) {
+            std::cout << "Generating Simple_build in blmake.lua..." << std::endl;
+            size_t err = generate_simple_build();
+            if (err) exit(1);
+        }
+        else if (check == std::string("tiny")) {
+            std::cout << "Generating Tiny_build in blmake.lua..." << std::endl;
+            size_t err = generate_tiny_build();
+            if (err) exit(1);
+        }
+        else if (check == std::string("test")) {
+            std::cout << "Generating Test_build in blmake.lua..." << std::endl;
+            size_t err = generate_test_build();
+            if (err) exit(1);
+        }
+        else {
+            std::cerr << "Unknown template type." << std::endl;
+            return 1;
+        }
+    }
+    else {
+        std::cout << "Generating Full_build in blmake.lua..." << std::endl;
+        size_t err = generate_full_build();
+        if (err) exit(1);
+    }
+    return 0;
+}
+
+// Helper function to get a string field from the Lua table
+std::string get_lua_string(lua_State* L, const char* name) 
+{
+    lua_getfield(L, -1, name);
+    std::string result = lua_tostring(L, -1);
+    lua_pop(L, 1); // Pop the value off the stack
+    return result;
+}
+
+// Helper function to get a table of strings from the Lua file
+std::vector<std::string> get_lua_string_array(lua_State* L, const char* name) 
+{
+    std::vector<std::string> result;
+    lua_getfield(L, -1, name); // Push table onto the stack
+
+    if (lua_istable(L, -1)) {
+        lua_pushnil(L); // Start iterating with the first key
+        while (lua_next(L, -2)) {
+            result.push_back(lua_tostring(L, -1));
+            lua_pop(L, 1); // Pop the value, keep the key for the next iteration
+        }
+    }
+    lua_pop(L, 1); // Pop the table from the stack
+    return result;
+}
+
+// main.cpp
+#include "utils.hpp"
+#include "build.hpp"
+#include "os.hpp"
+#include "gen.hpp"
+
+namespace fs = std::filesystem;
+
+int main(int argc, char** argv)
+{
+    // Create new Lua state for the config file to use
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
+
+    // Load and run the Lua config file
+    //! Eventually update this to be ./blmake.lua
+    if (luaL_loadfile(L, "src/blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
+        std::cerr << "Failed to load config: " << lua_tostring(L, -1) << std::endl;
+        return 1;
+    }
+
+    // Check for command line args
+    if (argc > 1) {
+        size_t err = handle_cl_args(argc, argv, L);
+        check_error_fatal((int)err, "Error handling command line arguments.");
+        return 0;
+    }
+
+    // Handle pre-build scripts
+    if (check_pre_build(L)) run_pre_build_script(L);
+
+    // Construct and run compilation command
+    fs::path path = get_config_value(L, "src_dir") + "/watcher"; 
+    if (fs::is_directory(path)) {
+        std::vector<std::string> commands = handle_incremental_command_construction(L);
+        if (commands.size() > 0) {
+            std::cout << "Running commands:" << std::endl;
+            for (std::string command : commands) {
+                std::cout << command << std::endl << std::endl;
+            }
+            for (std::string command : commands) {
+                std::pair<int, std::string> err = OS::run_command(command);
+                if (check_error_passive(err.first, err.second)) return 1;
+            }
+            std::cout << "Compiled successfully!\n" << std::endl;
+        }
+        else {
+            std::cout << "No changes detected. Recompilation not necessary." << std::endl;
+        }
+    }
+    else {
+        std::string command = handle_command_construction(L);
+        std::cout << command << std::endl << std::endl;
+        std::pair<int, std::string> err = OS::run_command(command);
+        std::cout << "Compiled successfully!\n" << std::endl;
+    }
+    // Handle post-build scripts
+    if (check_post_build(L)) run_post_build_script(L);
+
+    // Close lua state
+    lua_close(L);
+
+    return 0;
+}
+
+// os.cpp
+#include "os.hpp"
+
+std::string OS::detect_os() 
+{
+    std::string result;
+    #if defined(OS_WINDOWS)
+        result = "Windows";
+    #elif defined(OS_MACOS)
+        result = "MacOS";
+    #elif defined(OS_LINUX)
+        result = "Linux";
+    #elif defined(OS_UNIX)
+        result = "Unix";
+    #elif defined(OS_FREEBSD)
+        result = "FreeBSD";
+    #else
+        result = "Unknown";
+    #endif
+    return result;
+}
+
+#if defined(OS_UNIX_LIKE)
+std::pair<int, std::string> OS::run_command_unix(const std::vector<std::string>& args) 
+{
+    // Convert std::vector<std::string> to an array of char* required by execvp
+    std::vector<char*> cargs;
+    for (const std::string& arg : args) {
+        cargs.push_back(strdup(arg.c_str()));
+    }
+    cargs.push_back(nullptr);  // execvp expects a null-terminated array
+    int pipefd[2];  // Pipe for capturing output
+    if (pipe(pipefd) == -1) {
+        perror("pipe failed");
+        return {-1, ""};
+    }
+    pid_t pid = fork();  // Fork the current process
+    if (pid == -1) {
+        // Error occurred during fork
+        perror("fork failed");
+        return {-1, ""};
+    } 
+    else if (pid == 0) {
+        // Child process: redirect stdout to the pipe
+        close(pipefd[0]);  // Close unused read end
+        dup2(pipefd[1], STDOUT_FILENO);  // Redirect stdout to pipe write end
+        dup2(pipefd[1], STDERR_FILENO);  // Optionally redirect stderr to pipe write end
+        close(pipefd[1]);  // Close original write end after duplication
+        execvp(cargs[0], cargs.data());
+        // execvp only returns if an error occurred
+        perror("execvp failed");
+        exit(EXIT_FAILURE);
+    } 
+    else {
+        // Parent process
+        close(pipefd[1]);  // Close unused write end
+        // Read output from the pipe
+        std::string output;
+        char buffer[128];
+        ssize_t bytesRead;
+        while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+            buffer[bytesRead] = '\0';
+            output += buffer;
+        }
+        close(pipefd[0]);  // Close read end when done
+        // Wait for the child process to finish
+        int status;
+        waitpid(pid, &status, 0);  // Wait for the child process to terminate
+        // Free allocated memory for cargs
+        for (char* carg : cargs) {
+            free(carg);
+        }
+        // Return child's exit status and captured output
+        if (WIFEXITED(status)) {
+            return {WEXITSTATUS(status), output};  // Return exit code and output
+        } 
+        else {
+            return {-1, output};  // Child did not exit normally, return -1 with captured output
+        }
+    }
+}
+#endif
+
+std::pair<int, std::string> OS::run_command(std::string& arg) 
+{
+    std::pair<int, std::string> result;
+    std::vector<std::string> args = split(arg, " ");
+    #if defined(OS_UNIX_LIKE)
+        result = OS::run_command_unix(args);
+    #else
+        result = OS::run_command_windows(arg);
+    #endif
+    return result;
+}
+
+//todo: check this implementation
+#if defined(OS_WINDOWS)
+static std::pair<int, std::string> OS::run_command_windows(const std::string& command) 
+{
+    PROCESS_INFORMATION processInfo;
+    STARTUPINFO startupInfo = { sizeof(startupInfo) };
+    SECURITY_ATTRIBUTES securityAttrs = { sizeof(securityAttrs), NULL, TRUE };
+    HANDLE hRead, hWrite;
+    // Create pipe for capturing output
+    CreatePipe(&hRead, &hWrite, &securityAttrs, 0);
+    startupInfo.hStdOutput = hWrite;
+    startupInfo.hStdError = hWrite;
+    startupInfo.dwFlags |= STARTF_USESTDHANDLES;
+    // Execute command
+    if (!CreateProcess(NULL, const_cast<char*>(command.c_str()), NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInfo)) {
+        return {-1, "Failed to create process"};
+    }
+    // Wait for process to complete and capture output
+    WaitForSingleObject(processInfo.hProcess, INFINITE);
+    CloseHandle(hWrite);
+    // Read pipe output
+    char buffer[128];
+    std::string output;
+    DWORD bytesRead;
+    while (ReadFile(hRead, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0) {
+        buffer[bytesRead] = '\0';
+        output += buffer;
+    }
+    CloseHandle(hRead);
+    // Get exit code
+    DWORD exitCode;
+    GetExitCodeProcess(processInfo.hProcess, &exitCode);
+    CloseHandle(processInfo.hProcess);
+    CloseHandle(processInfo.hThread);
+    return {exitCode, output};
+}
+#endif
+
+// utils.cpp
+#include "utils.hpp"
+
+int check_error_passive(int err, std::string message)
+{
+    if (err) {
+        std::cerr << message << std::endl;
+        return err;
+    }
+    return err;
+}
+
+void check_error_fatal(int err, std::string message)
+{
+    if (err) {
+        std::cerr << message << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+std::string filter_files(std::string files, std::string check)
+{
+    std::vector<std::string> originals = split(files, " ");
+    std::vector<std::string> check_files = split(check, "\n");
+    std::vector<std::string> result;
+    result.reserve(originals.size());
+    for (std::string original : originals) {
+        for (std::string check : check_files) {
+            if (original == check) result.emplace_back(original);
+        }
+    }
+    
+    return join(result, " ");
+}
+
+std::string read_file(std::string path)
+{
+    std::ifstream t(path);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    return buffer.str();
+}
+
+bool validate_script_ext(std::string& path)
+{
+    bool result = false;
+    std::vector<std::string> valid_exts = {".sh", ".ps1", ".rb", ".py", ".lua"};
+    sanitize(path);
+    if (ends_with_any(path, valid_exts)) result = true;
+    return result;
+}
+
+bool ensure_executable(const char* scriptPath)
+{
+    #if defined(OS_UNIX_LIKE)
+        // Check if the file is executable
+        if (access(scriptPath, X_OK) == 0) {
+            return true;
+        }
+        // File is not executable, attempt to add executable permission
+        if (chmod(scriptPath, S_IRWXU) == 0) {
+            return true;
+        }
+        std::cerr << "Failed to make the script executable." << std::endl;
+        return false;
+    #else
+        std::cout << "Windows command execution not yet supported." << std::endl;
+        return false;
+    #endif
+}
+
+std::string perform_pre_build_path_extraction(lua_State* L, const char* path)
+{
+    std::string result = "";
+    lua_getglobal(L, path);
+    lua_getfield(L, -1, "hooks");
+    if (lua_istable(L, -1)) {
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            // Check if the key is a string
+            if (lua_isstring(L, -2)) {
+                const char* key = lua_tostring(L, -2);
+                if (strcmp(key, "pre_build") == 0) {
+                    if (lua_isstring(L, -1)) {
+                        result = lua_tostring(L, -1);
+                    }
+                } 
+            }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
+        }
+    }
+    return result;
+}
+
+std::string extract_pre_build_path(lua_State* L)
+{
+    std::string result = "";
+    if (check_table(L, "Full_build")) {
+        result = perform_pre_build_path_extraction(L, "Full_build");
+    }
+    else if (check_table(L, "Build")) {
+        result = perform_pre_build_path_extraction(L, "Build");
+    }
+    else if (check_table(L, "Simple_build")) {
+        result = perform_pre_build_path_extraction(L, "Simple_Build");
+    }
+    else if (check_table(L, "Test_build")) {
+        result = perform_pre_build_path_extraction(L, "Test_build");
+    }
+    return result;
+}
+
+bool perform_pre_build_check(lua_State* L, const char* path)
+{
+    bool result = false;
+    lua_getglobal(L, path);
+    lua_getfield(L, -1, "hooks");
+    if (lua_istable(L, -1)) {
+        std::string path = "";
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            // Check if the key is a string
+            if (lua_isstring(L, -2)) {
+                const char* key = lua_tostring(L, -2);
+                if (strcmp(key, "pre_build") == 0) {
+                    result = true;
+                } 
+            }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
+        }
+    }
+    return result;
+}
+
+bool check_pre_build(lua_State* L)
+{
+    bool result = false;
+    if (check_table(L, "Full_build")) {
+        result = perform_pre_build_check(L, "Full_build");
+    }
+    else if (check_table(L, "Build")) {
+        result = perform_pre_build_check(L, "Build");
+    }
+    else if (check_table(L, "Simple_build")) {
+        result = perform_pre_build_check(L, "Simple_build");
+    }
+    else if (check_table(L, "Test_build")) {
+        result = perform_pre_build_check(L, "Test_build");
+    }
+    return result;
+}
+
+std::string perform_post_build_path_extraction(lua_State* L, const char* path)
+{
+    std::string result = "";
+    lua_getglobal(L, path);
+    lua_getfield(L, -1, "hooks");
+    if (lua_istable(L, -1)) {
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            // Check if the key is a string
+            if (lua_isstring(L, -2)) {
+                const char* key = lua_tostring(L, -2);
+                if (strcmp(key, "post_build") == 0) {
+                    if (lua_isstring(L, -1)) {
+                        result = lua_tostring(L, -1);
+                    }
+                } 
+            }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
+        }
+    }
+    return result;
+}
+
+std::string extract_post_build_path(lua_State* L)
+{
+    std::string result = "";
+    if (check_table(L, "Full_build")) {
+        result = perform_post_build_path_extraction(L, "Full_build");
+    }
+    else if (check_table(L, "Build")) {
+        result = perform_post_build_path_extraction(L, "Build");
+    }
+    else if (check_table(L, "Simple_build")) {
+        result = perform_post_build_path_extraction(L, "Simple_build");
+    }
+    else if (check_table(L, "Test_build")) {
+        result = perform_post_build_path_extraction(L, "Test, build");
+    }
+    return result;
+}
+
+bool perform_post_build_check(lua_State* L, const char* path)
+{
+    bool result = false;
+    lua_getglobal(L, path);
+    lua_getfield(L, -1, "hooks");
+    if (lua_istable(L, -1)) {
+        std::string path = "";
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            // Check if the key is a string
+            if (lua_isstring(L, -2)) {
+                const char* key = lua_tostring(L, -2);
+                if (strcmp(key, "post_build") == 0) {
+                    result = true;
+                } 
+            }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
+        }
+    }
+    return result;
+}
+
+bool check_post_build(lua_State* L)
+{
+    bool result = false;
+    if (check_table(L, "Full_build")) {
+        result = perform_post_build_check(L, "Full_build");
+    }
+    else if (check_table(L, "Build")) {
+        result = perform_post_build_check(L, "Build");
+    }
+    else if (check_table(L, "Simple_build")) {
+        result = perform_post_build_check(L, "Simple_build");
+    }
+    else if (check_table(L, "Test_build")) {
+        result = perform_post_build_check(L, "Test_build");
+    }
+    return result;
+}
+
+size_t copy_template_file(const std::string& templateFilePath, const std::string& newFilePath)
+{
+    std::ifstream templateFile(templateFilePath);
+    if (!templateFile.is_open()) {
+        std::cerr << "Error opening template file: " << templateFilePath << std::endl;
+        return 1;
+    }
+    std::string fileContents((std::istreambuf_iterator<char>(templateFile)), std::istreambuf_iterator<char>());
+    templateFile.close();
+    std::ofstream newFile(newFilePath);
+    if (!newFile.is_open()) {
+        std::cerr << "Error creating new file: " << newFilePath << std::endl;
+        return 1;
+    }
+    newFile << fileContents;
+    newFile.close();
+    return 0;
+}
+
+size_t write_string_to_file(const std::string& destFilePath, const std::string& contents)
+{
+    std::ofstream newFile(destFilePath);
+    if (!newFile.is_open()) {
+        std::cerr << "Error creating new file: " << destFilePath << std::endl;
+        return 1;
+    }
+    newFile << contents;
+    newFile.close();
+    return 0;
+}
+
+size_t write_binary_data_to_file(const std::string& destFilePath, const unsigned char contents[], size_t size)
+{
+    std::ofstream newFile(destFilePath);
+    if (!newFile.is_open()) {
+        std::cerr << "Error creating new file: " << destFilePath << std::endl;
+        return 1;
+    }
+    for (size_t i = 0; i < size; i++) newFile << contents[i];
+    newFile.close();
+    return 0;
+}
+
+std::string to_lower(std::string str)
+{
+    std::string result = "";
+    for (char c : str) {
+        result += tolower(c);
+    }
+    return result;
+}
+
+bool starts_with_any(std::string str, std::vector<std::string> items)
+{
+    for (std::string item : items) {
+        if (str.starts_with(item)) return true;
+    }
+    return false;
+}
+
+bool ends_with_any(std::string str, std::vector<std::string> items)
+{
+    for (std::string item : items) {
+        if (str.ends_with(item)) return true;
+    }
+    return false;
+}
+
+std::vector<std::string> chars(std::string original)
+{
+    std::vector<std::string> result;
+    std::string temp = "";
+    for (char c : original) {
+        temp += c;
+        result.push_back(temp);
+        temp = "";
+    }
+    return result;
+}
+
+std::vector<std::string> split(std::string& original, const std::string& delim)
+{
+    std::vector<std::string> result;
+    std::string temp = "";
+    std::string copy = original;
+    if (delim.size() == 0) return chars(original);
+    if (original.size() <= 1) {
+        result.emplace_back(original);
+        return result;
+    }
+    while (copy.find(delim) != std::string::npos) {
+        temp = copy.substr(0, copy.find(delim));
+        result.emplace_back(temp);
+        copy.erase(0, copy.find(delim) + delim.size());
+    }
+    if (copy.size() > 0) result.emplace_back(copy);
+    if (result.size() == 0) result.emplace_back(original);
+    return result;
+}
+
+void ltrim(std::string& original, std::string cutset)
+{
+    std::vector<std::string> cut_chars = split(cutset, "");
+    if (starts_with_any(original, cut_chars)) {
+        original.erase(0, 1);
+    }
+}
+
+void rtrim(std::string& original, std::string cutset)
+{
+    std::vector<std::string> cut_chars = split(cutset, "");
+    while (ends_with_any(original, cut_chars)) {
+        original.erase(original.size()-1, 1);
+    }
+}
+
+void trim(std::string& original, std::string cutset)
+{
+    ltrim(original, cutset);
+    rtrim(original, cutset);
+}
+
+bool check_table(lua_State* L, const char* tableName)
+{
+    lua_getglobal(L, tableName);
+    bool isTable = lua_istable(L, -1);
+    lua_pop(L, 1);
+    return isTable;
+}
+
+std::string join(std::vector<std::string> vec, std::string delim)
+{
+    if (vec.size() == 0) return "";
+    if (vec.size() == 1) return vec[0];
+    std::string result = "";
+    int len = vec.size();
+    for (int i = 0; i < len; i++) {
+        result += vec[i];
+        if (i < len-1) {
+            result += delim;
+        }
+    }
+    return result;
+}
+
+std::string get_table_commands(lua_State* L, std::string prefix)
+{
+    std::string result = "";
+    if (lua_istable(L, -1)) {
+        std::vector<std::string> cmd;
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            if (lua_isstring(L, -1)) {
+                std::string temp = prefix + lua_tostring(L, -1);
+                cmd.push_back(temp);
+            }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
+        }
+        result = join(cmd, " ");
+    }
+    return result;
+}
+
+void sanitize(std::string& original)
+{
+    std::string sanitized;
+    for (char c : original) {
+        if (isalnum(c) || c == '.' || c == '/' || c == '-' || c == '_' || c == '+' || c == ' ' || c == '=') {
+            sanitized += c;
+        }
+    }
+    trim(sanitized, " ");
+    original = sanitized;
+}
+
+bool is_valid_compiler(std::string compiler)
+{
+    std::vector<std::string> valid_comps = {"gcc", "g++", "clang", "msvc", "tcc"};
+    for (std::string comp : valid_comps) {
+        if (compiler.find(comp) != std::string::npos) return true;
+    }
+    return false;
+}
+
+void print_valid_compilers()
+{
+    std::vector<std::string> valid_comps = {"gcc", "g++", "clang", "msvc", "tcc"};
+    std::cout << "Valid compilers:" << std::endl;
+    for (std::string comp : valid_comps) {
+        std::cout << comp << std::endl;
+    }
+}
+
+void print_help_menu()
+{
+    std::cout << "\n" << \
+    "Welcome to the blmake help menu!\n\n" << \
+    "Usage:\nblmake <command> <args>\n\n" << \
+    "The available commands are:\n" << \
+    "gen <config_type> (full, build, simple, tiny, test)\nhelp\n" << std::endl;
+}
+
+std::vector<std::string> filter_file_list(const std::vector<std::string>& vec)
+{
+    std::vector<std::string> result;
+    for (std::string entry : vec) {
+        for (char c : entry) {
+            if (!isspace(c)) {
+                result.emplace_back(entry);
+                goto Next;
+            }
+        }
+        Next:
+    }
+    return result;
+}

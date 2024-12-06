@@ -4,7 +4,7 @@
 #include "templates/simple_build_template.h"
 #include "templates/tiny_build_template.h"
 #include "templates/test_build_template.h"
-#include "watcher_config.h"
+#include "watcher_config.hpp"
 
 size_t handle_cl_args(int argc, char** argv, lua_State* L)
 {
