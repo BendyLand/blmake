@@ -6,13 +6,21 @@
 #include "templates/test_build_template.h"
 #include "watcher_config.hpp"
 
+size_t check_for_gen_arg(int argc, char** argv)
+{
+    if (argc > 1) {
+        if (argv[1] == std::string("gen")) {
+            size_t err = handle_template_generation(argc, argv);
+            return err;
+        }
+        return 1;
+    }
+    return 2;
+}
+
 size_t handle_cl_args(int argc, char** argv, lua_State* L)
 {
-    if (argv[1] == std::string("gen")) {
-        size_t err = handle_template_generation(argc, argv);
-        return err;
-    }
-    else if (argv[1] == std::string("help")) {
+    if (argv[1] == std::string("help")) {
         print_help_menu();
         return 0;
     }

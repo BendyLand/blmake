@@ -7,6 +7,13 @@ namespace fs = std::filesystem;
 
 int main(int argc, char** argv)
 {
+    // Check for template generation
+    if (argc > 1) {
+        size_t err = check_for_gen_arg(argc, argv);
+        check_error_passive((int)err, "Error handling template generation.");
+        if (err < 2) return 0;
+    }
+
     // Create new Lua state for the config file to use
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
