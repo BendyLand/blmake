@@ -20,9 +20,13 @@ A simple and straightforward build tool for C/C++!
  - `blmake` (this project):
      - The largest of the build tools.
      - Use for projects that would normally warrant the usage of something like Make.
-     - Rather than defining its own custom syntax, `blmake` will expect a lua file called "blmake.lua".
-     - There are commands to generate the config file and [will be commands to] run various parts of the build process.
+     - Rather than defining its own custom syntax, `blmake` will expect a Lua file called "blmake.lua".
+     - There are commands to generate this config file. 
        - The command to generate a config file is `blmake gen <option>`.
        - The options are: `full`, `build`, `simple`, `tiny`, and `test`. Leaving the option blank will default to `full`.
+     - There are commands to generate a file watcher for your project using a blmake.lua config file.
+       - The command to generate the watcher directory is `blmake watch`.
+       - The build tool will automatically run incremental builds if it detects the presence of a watcher directory.
+       - The file watcher depends on a file it generates called 'prev.json'. If the data kept in this file becomes corrupted, it will no longer function properly. To reset 'prev.json', run `blbld watch clean`.
      - *Build commands TBD*
      - *Note: The command `blmake` is not available by default on your system. You will need to build the project, rename the binary, and give it executable permissions to use it in this way.*
