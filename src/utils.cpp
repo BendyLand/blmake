@@ -4,7 +4,6 @@ int check_error_passive(int err, std::string message)
 {
     if (err) {
         std::cerr << message << std::endl;
-        return err;
     }
     return err;
 }

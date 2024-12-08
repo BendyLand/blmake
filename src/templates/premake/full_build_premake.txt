@@ -1,0 +1,51 @@
+-- premake5.lua generated from the Full_build table in blmake.lua!
+
+workspace "" 
+configurations { "Debug", "Release" } 
+location "" 
+
+project "" 
+kind "ConsoleApp" 
+language "" 
+targetdir "" 
+objdir "" 
+
+-- Compiler and files
+files {} 
+includedirs {} 
+
+-- Preprocessor options
+defines {} 
+
+-- Platform-specific options
+architecture "" 
+
+-- Language standard
+cppdialect "" 
+
+-- Build options
+filter "configurations:Debug" 
+    defines { "DEBUG" } 
+    symbols "On"
+    optimize "Off"
+
+filter "configurations:Release"
+    defines { "NDEBUG" } 
+    symbols "Off"
+    optimize "Full" 
+    flags { "LinkTimeOptimization" } 
+
+-- Warnings and flags
+buildoptions {} 
+
+-- Linker options
+libdirs {} 
+links {} 
+
+-- Custom scripts/hooks
+prebuildcommands {} 
+
+postbuildcommands {} 
+
+-- Additional flags
+buildoptions {} 

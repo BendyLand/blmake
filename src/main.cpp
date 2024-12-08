@@ -10,17 +10,15 @@ int main(int argc, char** argv)
     // Check for template generation
     if (argc > 1) {
         size_t err = check_for_gen_arg(argc, argv);
-        check_error_passive((int)err, "Error handling template generation.");
         if (err < 2) return 0;
     }
-
     // Create new Lua state for the config file to use
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     // Load and run the Lua config file
     //! switch back to src/blmake.lua for testing
-    if (luaL_loadfile(L, "blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
+    if (luaL_loadfile(L, "src/blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
         std::cerr << "Failed to load config: " << lua_tostring(L, -1) << std::endl;
         return 1;
     }

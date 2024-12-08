@@ -1,0 +1,18 @@
+-- premake5.lua generated from the Tiny_build table in blmake.lua!
+
+-- Tiny_build
+workspace ""
+   configurations { "Default" }
+   location ""
+
+project ""
+   kind "ConsoleApp"
+   language ""
+   targetdir ""
+   objdir ""
+
+   files {}
+
+   -- Minimal setup
+   filter "configurations:Default"
+      optimize "Speed"

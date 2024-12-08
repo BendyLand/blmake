@@ -13,7 +13,6 @@ Full_build = {
     lto = "-flto",                              -- Link-time optimization (e.g., "-flto")
     lang_exts = {"-std=c++20"},                 -- Language standard and extensions (e.g., "-std=c11", "-fno-exceptions")
     dependencies = {"m", "pthread"},            -- libraries to link against, e.g. {"lib1", "lib2"}
-    post_build = {},                          -- e.g., {"run_tests", "deploy"}
     build_type = "Debug",                       -- or "Release"
     env_vars = {},                            -- e.g., {CC = "gcc", CXX = "g++"}
     src_dir = "custom_example",                 -- Source directory

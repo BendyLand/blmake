@@ -1,0 +1,21 @@
+-- premake5.lua generated from the Simple_build table in blmake.lua!
+
+workspace ""
+   configurations { "Default" }
+   location ""
+
+project ""
+   kind "ConsoleApp"
+   language ""
+   targetdir ""
+   objdir ""
+
+   files {}
+   includedirs {}
+
+   -- Optional hooks
+   prebuildcommands {}
+
+   -- Debug settings
+   filter "configurations:Default"
+      symbols "Off"

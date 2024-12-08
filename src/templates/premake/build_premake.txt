@@ -1,0 +1,29 @@
+-- premake5.lua generated from the Build table in blmake.lua!
+
+workspace ""
+   configurations { "Debug", "Release" }
+   location ""
+
+project ""
+   kind "ConsoleApp"
+   language ""
+   targetdir ""
+   objdir ""
+
+   files {}
+   includedirs {}
+
+   -- Preprocessor and linker options
+   defines {}
+   links {}
+
+   -- Optimization and debug info
+   filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+      optimize "Off"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "Full"
+      symbols "Off"
