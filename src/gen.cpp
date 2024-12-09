@@ -44,10 +44,6 @@ size_t check_for_gen_arg(int argc, char** argv)
             size_t err = Blmake::handle_template_generation(argc, argv);
             return err;
         }
-        if (argv[1] == std::string("premake")) {
-            return 2;
-        }
-        return 1;
     }
     return 2;
 }

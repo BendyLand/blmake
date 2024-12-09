@@ -10,7 +10,14 @@ int main(int argc, char** argv)
     // Check for template generation
     if (argc > 1) {
         size_t err = check_for_gen_arg(argc, argv);
-        if (err < 2) return 0;
+        switch (err) {
+        case 0:
+            return 0;
+        case 1:
+            std::cout << "Error checking for gen arg." << std::endl;
+            return 1;
+        // cases 2+ should continue through
+        }
     }
     // Create new Lua state for the config file to use
     lua_State* L = luaL_newstate();
