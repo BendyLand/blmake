@@ -3,7 +3,6 @@
 bool is_include(std::string line)
 {
     boost::regex pat("#include.*");
-
     std::cout << "Hello";
 
     

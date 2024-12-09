@@ -13,7 +13,7 @@
 
 size_t copy_template_file(const std::string& from, const std::string& to);
 bool check_table(lua_State *L, const char* tableName);
-std::string get_table_commands(lua_State* L, std::string prefix);
+std::string get_table_commands(lua_State* L, const std::string& prefix);
 std::string join(std::vector<std::string> vec, std::string delim);
 void sanitize(std::string& original);
 void ltrim(std::string& original, std::string cutset);
@@ -42,6 +42,10 @@ bool perform_pre_build_check(lua_State* L, const char* path);
 int check_error_passive(int err, std::string message);
 std::vector<std::string> filter_file_list(const std::vector<std::string>& vec);
 size_t write_binary_data_to_file(const std::string& destFilePath, const unsigned char contents[], size_t size);
+std::string get_lua_table_as_str(lua_State* L, const std::string& field);
+std::vector<std::string> get_lua_table(lua_State* L, const std::string& field);
+std::string get_lua_str(lua_State* L, const std::string& field);
+std::string get_lua_table_with_cmds_as_str(lua_State* L, const std::string& field, const std::string& prefix);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, std::vector<T> vec)

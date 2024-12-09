@@ -14,7 +14,7 @@ Build = {
     optimization = "",  -- Optimization level (e.g., "-O2", "-Os")
     debugging = false,  -- A BOOLEAN value indicating whether to include debugging info ("-g")
     build_type = "",    -- e.g., "Debug" or "Release"
-    output = "",        -- e.g., "myprogram"
+    output = "main",        -- e.g., "myprogram"
     src_dir = "",       -- Source directory
     out_dir = "test",       -- Output directory
     hooks = {},         -- e.g., {pre_build = "scripts/pre_build.sh"} 

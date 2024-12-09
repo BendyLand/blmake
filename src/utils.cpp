@@ -1,5 +1,73 @@
 #include "utils.hpp"
 
+std::string get_lua_str(lua_State* L, const std::string& field)
+{
+    std::string result = "";
+    lua_getfield(L, -1, field.c_str());
+    if (lua_isstring(L, -1)) {
+        std::string value = lua_tostring(L, -1);
+        sanitize(value);
+        result += value;
+    }
+    lua_pop(L, 1);
+    return result;
+}
+
+std::vector<std::string> get_lua_table(lua_State* L, const std::string& field)
+{
+    std::vector<std::string> result;
+    lua_getfield(L, -1, field.c_str());
+    if (lua_istable(L, -1)) {
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            if (lua_isstring(L, -1)) {
+                std::string temp = lua_tostring(L, -1);
+                sanitize(temp);
+                result.emplace_back(temp);
+            }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
+        }
+    }
+    lua_pop(L, 1);
+    return result;
+}
+
+std::string get_lua_table_with_cmds_as_str(lua_State* L, const std::string& field, const std::string& prefix)
+{
+    std::string result = "";
+    lua_getfield(L, -1, field.c_str());
+    if (lua_istable(L, -1)) {
+        std::string temp = get_table_commands(L, prefix);
+        sanitize(temp);
+        if (!temp.empty()) {
+            result += temp;
+        }
+    }
+    lua_pop(L, 1);
+    return result;
+}
+
+std::string get_lua_table_as_str(lua_State* L, const std::string& field)
+{
+    std::string result = "";
+    lua_getfield(L, -1, field.c_str());
+    if (lua_istable(L, -1)) {
+        std::vector<std::string> vec;
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            if (lua_isstring(L, -1)) {
+                std::string temp = lua_tostring(L, -1);
+                sanitize(temp);
+                vec.emplace_back(temp);
+            }
+            lua_pop(L, 1); // Pop value, keep key for next iteration
+        }
+        result = join(vec, " ");
+    }
+    lua_pop(L, 1);
+    return result;
+}
+
 int check_error_passive(int err, std::string message)
 {
     if (err) {
@@ -374,7 +442,7 @@ std::string join(std::vector<std::string> vec, std::string delim)
     return result;
 }
 
-std::string get_table_commands(lua_State* L, std::string prefix)
+std::string get_table_commands(lua_State* L, const std::string& prefix)
 {
     std::string result = "";
     if (lua_istable(L, -1)) {

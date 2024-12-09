@@ -5,6 +5,7 @@
 
 namespace fs = std::filesystem;
 
+//todo: finish premake conversions 
 int main(int argc, char** argv)
 {
     // Check for template generation
@@ -16,7 +17,7 @@ int main(int argc, char** argv)
         case 1:
             std::cout << "Error checking for gen arg." << std::endl;
             return 1;
-        // cases 2+ should continue through
+        // cases 2+ should fall through
         }
     }
     // Create new Lua state for the config file to use
@@ -25,7 +26,7 @@ int main(int argc, char** argv)
 
     // Load and run the Lua config file
     //! switch back to src/blmake.lua for testing
-    if (luaL_loadfile(L, "src/blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
+    if (luaL_loadfile(L, "blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
         std::cerr << "Failed to load config: " << lua_tostring(L, -1) << std::endl;
         return 1;
     }

@@ -11,14 +11,13 @@ Test_build = {
     include_dirs = {},  -- Directories for include files (optional)
     dependencies = {},  -- Libraries to link against (e.g., "m" for the math lib)
     preproc_opts = {},  -- Preprocessor options (e.g., macros, include paths)
-    linker_opts = {},   -- Linker options (e.g., libraries, library paths)
+    linker_opts = {},   -- Paths to check for included dependencies
     optimization = "",  -- Optimization level (e.g., "-O2", "-Os")
     warnings = {},      -- Warning levels and options (e.g., "-Wall", "-Werror")
     profiling = "",     -- Profiling options (e.g., "-pg")
-    debugging = false,  -- Will add "-g" if true.
+    debugging = true,   -- Will add "-g" if true.
     output = "",        -- e.g., "myprogram"
     src_dir = "",       -- Source directory
     out_dir = "",       -- Output directory
-    tests = {},         -- e.g., {"test_suite1", "test_suite2"}
     hooks = {}          -- e.g., {pre_build = "scripts/pre_build.sh", post_build = "scripts/post_build.sh"} 
 }
