@@ -150,19 +150,20 @@ namespace Premake
         std::string language = get_lua_str(L, "compiler");
         if (language == "g++") language = "C++";
         else if (language == "gcc" || language == "clang") language = "C";
+        std::string out_dir = get_lua_str(L, "out_dir");
         std::unordered_map<std::string, std::string> str_keywords = {
             {"workspace", get_blmake_config_type(L)} ,
-            {"location", get_lua_str(L, "out_dir")},
+            {"location", out_dir},
             {"project", get_blmake_config_type(L)},
             {"language", language},
-            {"targetdir", get_lua_str(L, "out_dir")},
-            {"objdir", get_lua_str(L, "out_dir")+"/obj"},
+            {"targetdir", out_dir},
+            {"objdir", out_dir.size()>0?out_dir+"/obj":"./obj"},
             {"cppdialect", dialect},
         };
         std::string prefix = get_lua_str(L, "src_dir");
         std::string options = {
-            get_lua_table_with_cmds_as_str(L, "warnings", "-W") + " " + 
-            get_lua_str(L, "lto") + " " + 
+            get_lua_table_with_cmds_as_str(L, "warnings", "-W") + " " +
+            get_lua_str(L, "lto") + " " +
             get_lua_str(L, "profiling")
         };
         options = remove_extra_spaces(options);
@@ -189,9 +190,9 @@ namespace Premake
             {"defines", get_lua_table_as_str(L, "preproc_opts")},
             {"buildoptions", options},
             {"libdirs", get_lua_table_as_str(L, "linker_opts")},
-            {"links", get_lua_table_as_str(L, "dependencies")}, 
-            {"prebuildcommands", prebuild}, 
-            {"postbuildcommands", postbuild}, 
+            {"links", get_lua_table_as_str(L, "dependencies")},
+            {"prebuildcommands", prebuild},
+            {"postbuildcommands", postbuild},
         };
         for (auto& [k, v] : str_keywords) {
             insert_field_str(lines, k, v);
@@ -213,13 +214,14 @@ namespace Premake
         std::string language = get_lua_str(L, "compiler");
         if (language == "g++") language = "C++";
         else if (language == "gcc" || language == "clang") language = "C";
+        std::string out_dir = get_lua_str(L, "out_dir");
         std::unordered_map<std::string, std::string> str_keywords = {
             {"workspace", get_blmake_config_type(L)} ,
-            {"location", get_lua_str(L, "out_dir")},
+            {"location", out_dir},
             {"project", get_blmake_config_type(L)},
             {"language", language},
-            {"targetdir", get_lua_str(L, "out_dir")},
-            {"objdir", get_lua_str(L, "out_dir")+"/obj"},
+            {"targetdir", out_dir},
+            {"objdir", out_dir.size()>0?out_dir+"/obj":"./obj"},
         };
         std::string prefix = get_lua_str(L, "src_dir");
         if (!prefix.empty()) prefix += "/";
@@ -228,7 +230,7 @@ namespace Premake
             {"includedirs", get_lua_table_as_str(L, "include_dirs")},
             {"defines", get_lua_table_as_str(L, "preproc_opts")},
             {"libdirs", get_lua_table_as_str(L, "linker_opts")},
-            {"links", get_lua_table_as_str(L, "dependencies")}, 
+            {"links", get_lua_table_as_str(L, "dependencies")},
         };
         for (auto& [k, v] : str_keywords) {
             insert_field_str(lines, k, v);
@@ -284,7 +286,7 @@ namespace Premake
             {"project", get_blmake_config_type(L)},
             {"language", language},
             {"targetdir", "./"},
-            {"objdir", "./obj"}, 
+            {"objdir", "./obj"},
         };
         std::unordered_map<std::string, std::string> tbl_keywords = {
             {"files", get_lua_table_with_cmds_as_str(L, "files", "")} ,
@@ -308,17 +310,18 @@ namespace Premake
         std::string language = get_lua_str(L, "compiler");
         if (language == "g++") language = "C++";
         else if (language == "gcc" || language == "clang") language = "C";
+        std::string out_dir = get_lua_str(L, "out_dir");
         std::unordered_map<std::string, std::string> str_keywords = {
             {"workspace", get_blmake_config_type(L)} ,
-            {"location", get_lua_str(L, "out_dir")},
+            {"location", out_dir},
             {"project", get_blmake_config_type(L)},
             {"language", language},
-            {"targetdir", get_lua_str(L, "out_dir")},
-            {"objdir", get_lua_str(L, "out_dir")+"/obj"},
+            {"targetdir", out_dir},
+            {"objdir", out_dir.size()>0?out_dir+"/obj":"./obj"},
         };
         std::string prefix = get_lua_str(L, "src_dir");
         std::string options = {
-            get_lua_table_with_cmds_as_str(L, "warnings", "-W") + " " + 
+            get_lua_table_with_cmds_as_str(L, "warnings", "-W") + " " +
             get_lua_str(L, "profiling")
         };
         options = remove_extra_spaces(options);
@@ -345,9 +348,9 @@ namespace Premake
             {"defines", get_lua_table_as_str(L, "preproc_opts")},
             {"buildoptions", options},
             {"libdirs", get_lua_table_as_str(L, "linker_opts")},
-            {"links", get_lua_table_as_str(L, "dependencies")}, 
-            {"prebuildcommands", prebuild}, 
-            {"postbuildcommands", postbuild}, 
+            {"links", get_lua_table_as_str(L, "dependencies")},
+            {"prebuildcommands", prebuild},
+            {"postbuildcommands", postbuild},
         };
         for (auto& [k, v] : str_keywords) {
             insert_field_str(lines, k, v);
