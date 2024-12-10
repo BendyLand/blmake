@@ -92,7 +92,6 @@ std::pair<int, std::string> OS::run_command(std::string& arg)
     return result;
 }
 
-//todo: check this implementation
 #if defined(OS_WINDOWS)
 static std::pair<int, std::string> OS::run_command_windows(const std::string& command) 
 {

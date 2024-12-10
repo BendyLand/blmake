@@ -17,9 +17,6 @@ includedirs {}
 -- Preprocessor options
 defines {} 
 
--- Platform-specific options
-architecture "" 
-
 -- Language standard
 cppdialect "" 
 
@@ -46,6 +43,3 @@ links {}
 prebuildcommands {} 
 
 postbuildcommands {} 
-
--- Additional flags
-buildoptions {} 

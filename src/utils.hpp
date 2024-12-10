@@ -46,6 +46,11 @@ std::string get_lua_table_as_str(lua_State* L, const std::string& field);
 std::vector<std::string> get_lua_table(lua_State* L, const std::string& field);
 std::string get_lua_str(lua_State* L, const std::string& field);
 std::string get_lua_table_with_cmds_as_str(lua_State* L, const std::string& field, const std::string& prefix);
+std::string add_quotes(const std::string& str);
+std::string remove_extra_spaces(const std::string& str);
+std::string add_quotes_and_commas(std::string& str);
+std::string to_lowercase(const std::string& str);
+std::string to_uppercase(const std::string& str);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, std::vector<T> vec)
@@ -56,4 +61,30 @@ std::ostream& operator<<(std::ostream& os, std::vector<T> vec)
     }
     std::cout << std::endl;
     return os;
+}
+
+template <typename T>
+bool contains(std::vector<T> vec, T item)
+{
+    for (T entry : vec) {
+        if (entry == item) return true;
+    }
+    return false;
+}
+
+/** 
+ * Searches the FIRST 10 CHARS of each entry for the occurrence of a substring.
+ * @param vec The vector to look through.
+ * @param item The substring to look for.
+ * @returns The first entry of `vec` which contains `item` in the first 10 chars.
+ */
+size_t find(std::vector<std::string> vec, std::string item);
+
+template <typename T>
+size_t find(std::vector<T> vec, T item)
+{
+    for (size_t i = 0; i < vec.size(); i++) {
+        if (vec[i] == item) return i;
+    }
+    return SIZE_T_MAX;
 }

@@ -1,5 +1,61 @@
 #include "utils.hpp"
 
+std::string to_uppercase(const std::string& str)
+{
+    std::string result = "";
+    for (char c : str) {
+        result += toupper(c);
+    }
+    return result;
+}
+
+std::string to_lowercase(const std::string& str)
+{
+    std::string result = "";
+    for (char c : str) {
+        result += tolower(c);
+    }
+    return result;
+}
+
+std::string remove_extra_spaces(const std::string& str)
+{
+    std::string result = "";
+    size_t size = str.size();
+    for (size_t i = 0; i < size; i++) {
+        if (i < size-1) {
+            if (str[i] == ' ') {
+                if (str[i+1] == ' ') continue;
+            }
+        }
+        result += str[i];
+    }
+    return result;
+}
+
+std::string add_quotes_and_commas(std::string& str)
+{
+    std::vector<std::string> temp = split(str, " ");
+    std::vector<std::string> result;
+    for (std::string entry : temp) {
+        result.emplace_back(add_quotes(entry));
+    }
+    return join(result, ", ");
+}
+
+std::string add_quotes(const std::string& str)
+{
+    return "\"" + str + "\"";
+}
+
+size_t find(std::vector<std::string> vec, std::string item)
+{
+    for (size_t i = 0; i < vec.size(); i++) {
+        if (vec[i].find(item) <= 10) return i;
+    }
+    return SIZE_T_MAX;
+}
+
 std::string get_lua_str(lua_State* L, const std::string& field)
 {
     std::string result = "";

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include "utils.hpp"
 #include "build.hpp"
 #include "os.hpp"
@@ -14,6 +15,14 @@ namespace Premake
     size_t handle_template_generation(int argc, char** argv, lua_State* L);
     std::string generate_premake_build(lua_State* L);
     std::string get_premake_contents(lua_State* L);
+    std::string populate_premake_template(lua_State* L, const std::string& contents);
+    std::string populate_test_build_premake_template(lua_State* L, const std::string contents);
+    std::string populate_tiny_build_premake_template(lua_State* L, const std::string& contents);
+    std::string populate_simple_build_premake_template(lua_State* L, const std::string& contents);
+    std::string populate_build_premake_template(lua_State* L, const std::string& contents);
+    void insert_field_str(std::vector<std::string>*& vec, const std::string& field, std::string& value);
+    void insert_field_tbl(std::vector<std::string>*& vec, const std::string& field, std::string& value);
+    std::string populate_full_build_premake_template(lua_State* L, const std::string& contents);
 };
 
 namespace Watcher

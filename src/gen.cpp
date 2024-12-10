@@ -12,7 +12,7 @@
 #include "watcher_config.hpp"
 
 // Helper function to get a string field from the Lua table
-std::string get_lua_string(lua_State* L, const char* name) 
+std::string get_lua_string(lua_State* L, const char* name)
 {
     lua_getfield(L, -1, name);
     std::string result = lua_tostring(L, -1);
@@ -21,7 +21,7 @@ std::string get_lua_string(lua_State* L, const char* name)
 }
 
 // Helper function to get a table of strings from the Lua file
-std::vector<std::string> get_lua_string_array(lua_State* L, const char* name) 
+std::vector<std::string> get_lua_string_array(lua_State* L, const char* name)
 {
     std::vector<std::string> result;
     lua_getfield(L, -1, name); // Push table onto the stack
@@ -78,19 +78,10 @@ size_t handle_cl_args(int argc, char** argv, lua_State* L)
 
 namespace Premake
 {
-    size_t handle_template_generation(int argc, char** argv, lua_State* L)
-    {
-        std::string contents = generate_premake_build(L);
-        std::cout << "Contents:\n" << contents << std::endl;
-        // size_t err = write_string_to_file("./premake5.lua", contents);
-        // if (err == 0) std::cout << "Premake file generated successfully!" << std::endl;
-        size_t err = 0;
-        return err;
-    }
-
     std::string generate_premake_build(lua_State* L)
     {
         std::string contents = get_premake_contents(L);
+        contents = populate_premake_template(L, contents);
         return contents;
     }
 
@@ -119,7 +110,150 @@ namespace Premake
         return result;
     }
 
-/*  
+    size_t handle_template_generation(int argc, char** argv, lua_State* L)
+    {
+        std::string contents = generate_premake_build(L);
+        contents = populate_premake_template(L, contents);
+        size_t err = write_string_to_file("./premake5.lua", contents);
+        if (err == 0) std::cout << "Premake file generated successfully!" << std::endl;
+        return err;
+    }
+
+    void insert_field_str(std::vector<std::string>*& vec, const std::string& field, std::string& value)
+    {
+        if (field == "objdir") value += "/obj";
+        size_t idx = find(*vec, field);
+        size_t dq_idx = (*vec)[idx].find("\"");
+        if ((*vec)[idx][dq_idx+1] != '"') return;
+        std::string new_line = (*vec)[idx].insert(dq_idx+1, value);
+        (*vec)[idx] = new_line;
+    }
+
+    void insert_field_tbl(std::vector<std::string>*& vec, const std::string& field, std::string& value)
+    {
+        size_t idx = find(*vec, field);
+        size_t b_idx = (*vec)[idx].find("{}");
+        if (b_idx == std::string::npos) return;
+        value = add_quotes_and_commas(value);
+        std::string new_line = (*vec)[idx].insert(b_idx+1, value + " ");
+        b_idx = (*vec)[idx].find("{");
+        new_line = new_line.insert(b_idx+1, " ");
+        (*vec)[idx] = new_line;
+    }
+
+    std::string populate_full_build_premake_template(lua_State* L, const std::string& contents)
+    {
+        std::string result = contents;
+        std::vector<std::string> temp_vec = split(result, "\n");
+        std::vector<std::string>* lines = &temp_vec;
+        std::string tbl = get_lua_table_as_str(L, "lang_exts");
+        std::string dialect = tbl.find("-std=c++") != std::string::npos ? to_uppercase(tbl.substr(tbl.find("-std=c++")+5, 10)) : "";
+        std::string language = get_lua_str(L, "compiler");
+        if (language == "g++") language = "C++";
+        else if (language == "gcc" || language == "clang") language = "C";
+        std::unordered_map<std::string, std::string> str_keywords = {
+            {"workspace", get_blmake_config_type(L)} ,
+            {"location", get_lua_str(L, "out_dir")},
+            {"project", get_blmake_config_type(L)},
+            {"language", language},
+            {"targetdir", get_lua_str(L, "out_dir")},
+            {"objdir", get_lua_str(L, "out_dir")}, // + "/obj"
+            {"cppdialect", dialect},
+        };
+        std::string prefix = get_lua_str(L, "src_dir");
+        std::string options = {
+            get_lua_table_with_cmds_as_str(L, "warnings", "-W") + " " + 
+            get_lua_str(L, "lto") + " " + 
+            get_lua_str(L, "profiling")
+        };
+        options = remove_extra_spaces(options);
+        if (!prefix.empty()) prefix += "/";
+        std::string prebuild = "";
+        std::string postbuild = "";
+        lua_getfield(L, -1, "hooks");
+        if (lua_istable(L, -1)) {
+            lua_getfield(L, -1, "pre_build");
+            if (lua_isstring(L, -1)) {
+                prebuild = lua_tostring(L, -1);
+            }
+            lua_pop(L, 1);
+            lua_getfield(L, -1, "post_build");
+            if (lua_isstring(L, -1)) {
+                postbuild = lua_tostring(L, -1);
+            }
+            lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
+        std::unordered_map<std::string, std::string> tbl_keywords = {
+            {"files", get_lua_table_with_cmds_as_str(L, "files", prefix)} ,
+            {"includedirs", get_lua_table_as_str(L, "include_dirs")},
+            {"defines", get_lua_table_as_str(L, "preproc_opts")},
+            {"buildoptions", options},
+            {"libdirs", get_lua_table_as_str(L, "linker_opts")},
+            {"links", get_lua_table_as_str(L, "dependencies")}, 
+            {"prebuildcommands", prebuild}, 
+            {"postbuildcommands", postbuild}, 
+        };
+        for (auto& [k, v] : str_keywords) {
+            insert_field_str(lines, k, v);
+        }
+        for (auto& [k, v] : tbl_keywords) {
+            insert_field_tbl(lines, k, v);
+        }
+        result = join(*lines, "\n");
+        return result;
+    }
+
+    std::string populate_build_premake_template(lua_State* L, const std::string& contents)
+    {
+
+    }
+
+    std::string populate_simple_build_premake_template(lua_State* L, const std::string& contents)
+    {
+
+    }
+
+    std::string populate_tiny_build_premake_template(lua_State* L, const std::string& contents)
+    {
+
+    }
+
+    std::string populate_test_build_premake_template(lua_State* L, const std::string contents)
+    {
+
+    }
+
+    std::string populate_premake_template(lua_State* L, const std::string& contents)
+    {
+        std::string result = "";
+        std::string kind = get_blmake_config_type(L);
+        //todo: update the if-else pattern to a map to <string, function pointer>
+        if (kind == "Full_build") {
+            lua_getglobal(L, "Full_build");
+            result = populate_full_build_premake_template(L, contents);
+        }
+        else if (kind == "Build") {
+            lua_getglobal(L, "Build");
+            result = populate_build_premake_template(L, contents);
+        }
+        else if (kind == "Simple_build") {
+            lua_getglobal(L, "Simple_build");
+            result = populate_simple_build_premake_template(L, contents);
+        }
+        else if (kind == "Tiny_build") {
+            lua_getglobal(L, "Tiny_build");
+            result = populate_tiny_build_premake_template(L, contents);
+        }
+        else if (kind == "Test_build") {
+            lua_getglobal(L, "Test_build");
+            result = populate_test_build_premake_template(L, contents);
+        }
+        return result;
+    }
+};
+
+/*
 -- Full_build
 workspace "BendyLand" -- project_metadata.name else Full_build (table name)
 configurations { "Debug", "Release" } -- constant?
@@ -145,8 +279,8 @@ architecture "arm" -- constant w/ option to change?
 cppdialect "C++20" -- lang_exts if -std=c++XX
 
 -- Build options
-filter "configurations:Debug" 
-    defines { "DEBUG" } 
+filter "configurations:Debug"
+    defines { "DEBUG" }
     symbols "On"
     optimize "Off"
 
@@ -166,7 +300,7 @@ libdirs { "custom_example/libs" } -- linker_opts
 links { "m", "pthread" } -- dependencies
 
 -- Custom scripts/hooks
-prebuildcommands { 
+prebuildcommands {
     "custom_example/scripts/pre_build.sh"
 } -- hooks.pre_build
 
@@ -177,13 +311,12 @@ postbuildcommands {
 -- Additional flags
 buildoptions { "-fno-stack-protector" } -- custom_flags
 */
-};
 
 namespace Blmake
 {
     size_t generate_full_build()
     {
-        std::string contents = ""; 
+        std::string contents = "";
         for (size_t i = 0; i < full_build_template_txt_len; i++) contents += full_build_template_txt[i];
         size_t err = write_string_to_file("./blmake.lua", contents);
         if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
@@ -192,7 +325,7 @@ namespace Blmake
 
     size_t generate_build()
     {
-        std::string contents = ""; 
+        std::string contents = "";
         for (size_t i = 0; i < build_template_txt_len; i++) contents += build_template_txt[i];
         size_t err = write_string_to_file("./blmake.lua", contents);
         if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
@@ -201,7 +334,7 @@ namespace Blmake
 
     size_t generate_simple_build()
     {
-        std::string contents = ""; 
+        std::string contents = "";
         for (size_t i = 0; i < simple_build_template_txt_len; i++) contents += simple_build_template_txt[i];
         size_t err = write_string_to_file("./blmake.lua", contents);
         if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
@@ -210,7 +343,7 @@ namespace Blmake
 
     size_t generate_tiny_build()
     {
-        std::string contents = ""; 
+        std::string contents = "";
         for (size_t i = 0; i < tiny_build_template_txt_len; i++) contents += tiny_build_template_txt[i];
         size_t err = write_string_to_file("./blmake.lua", contents);
         if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
@@ -219,7 +352,7 @@ namespace Blmake
 
     size_t generate_test_build()
     {
-        std::string contents = ""; 
+        std::string contents = "";
         for (size_t i = 0; i < test_build_template_txt_len; i++) contents += test_build_template_txt[i];
         size_t err = write_string_to_file("./blmake.lua", contents);
         if (err == 0) std::cout << "Config file generated successfully!" << std::endl;
@@ -272,7 +405,7 @@ namespace Blmake
     }
 };
 
-namespace Watcher 
+namespace Watcher
 {
     size_t generate_watcher_structure(lua_State* L)
     {
@@ -296,12 +429,12 @@ namespace Watcher
         size_t err1 = write_binary_data_to_file(src_path + "/watcher", src_watcher_watcher, src_watcher_watcher_len);
         std::string permissions_cmd = "chmod +x " + src_path + "/watcher";
         OS::run_command(permissions_cmd);
-    #else 
+    #else
         size_t err1 = 0; //! temporary until Windows implementation works
     #endif
         size_t err2 = write_string_to_file(src_path + "/prev.json", prev_json);
         size_t err3 = write_string_to_file(src_path + "/recompile_list.txt", "");
-        size_t any_err = err1 | err2 | err3; 
+        size_t any_err = err1 | err2 | err3;
         if (any_err == 0) std::cout << "Watcher structure generated successfully!" << std::endl;
         return any_err;
     }
