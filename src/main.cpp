@@ -5,7 +5,6 @@
 
 namespace fs = std::filesystem;
 
-//todo: finish premake conversions 
 int main(int argc, char** argv)
 {
     // Check for template generation

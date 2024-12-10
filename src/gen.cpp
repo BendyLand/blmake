@@ -253,8 +253,8 @@ namespace Premake
             {"location", get_lua_str(L, "out_dir")},
             {"project", get_blmake_config_type(L)},
             {"language", language},
-            {"targetdir", get_lua_str(L, "out_dir")},
-            {"objdir", get_lua_str(L, "out_dir")+"/obj"},
+            {"targetdir", "./"},
+            {"objdir", "./obj"},
         };
         std::unordered_map<std::string, std::string> tbl_keywords = {
             {"files", get_lua_table_with_cmds_as_str(L, "files", "")} ,
@@ -280,11 +280,11 @@ namespace Premake
         else if (language == "gcc" || language == "clang") language = "C";
         std::unordered_map<std::string, std::string> str_keywords = {
             {"workspace", get_blmake_config_type(L)} ,
-            {"location", get_lua_str(L, "out_dir")},
+            {"location", "./"},
             {"project", get_blmake_config_type(L)},
             {"language", language},
-            {"targetdir", get_lua_str(L, "out_dir")},
-            {"objdir", get_lua_str(L, "out_dir")+"/obj"}, 
+            {"targetdir", "./"},
+            {"objdir", "./obj"}, 
         };
         std::unordered_map<std::string, std::string> tbl_keywords = {
             {"files", get_lua_table_with_cmds_as_str(L, "files", "")} ,
