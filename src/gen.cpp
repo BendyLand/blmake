@@ -121,7 +121,6 @@ namespace Premake
 
     void insert_field_str(std::vector<std::string>*& vec, const std::string& field, std::string& value)
     {
-        if (field == "objdir") value += "/obj";
         size_t idx = find(*vec, field);
         size_t dq_idx = (*vec)[idx].find("\"");
         if ((*vec)[idx][dq_idx+1] != '"') return;
@@ -157,7 +156,7 @@ namespace Premake
             {"project", get_blmake_config_type(L)},
             {"language", language},
             {"targetdir", get_lua_str(L, "out_dir")},
-            {"objdir", get_lua_str(L, "out_dir")}, // + "/obj"
+            {"objdir", get_lua_str(L, "out_dir")+"/obj"},
             {"cppdialect", dialect},
         };
         std::string prefix = get_lua_str(L, "src_dir");
@@ -206,22 +205,158 @@ namespace Premake
 
     std::string populate_build_premake_template(lua_State* L, const std::string& contents)
     {
-
+        std::string result = contents;
+        std::vector<std::string> temp_vec = split(result, "\n");
+        std::vector<std::string>* lines = &temp_vec;
+        std::string tbl = get_lua_table_as_str(L, "lang_exts");
+        std::string dialect = tbl.find("-std=c++") != std::string::npos ? to_uppercase(tbl.substr(tbl.find("-std=c++")+5, 10)) : "";
+        std::string language = get_lua_str(L, "compiler");
+        if (language == "g++") language = "C++";
+        else if (language == "gcc" || language == "clang") language = "C";
+        std::unordered_map<std::string, std::string> str_keywords = {
+            {"workspace", get_blmake_config_type(L)} ,
+            {"location", get_lua_str(L, "out_dir")},
+            {"project", get_blmake_config_type(L)},
+            {"language", language},
+            {"targetdir", get_lua_str(L, "out_dir")},
+            {"objdir", get_lua_str(L, "out_dir")+"/obj"},
+        };
+        std::string prefix = get_lua_str(L, "src_dir");
+        if (!prefix.empty()) prefix += "/";
+        std::unordered_map<std::string, std::string> tbl_keywords = {
+            {"files", get_lua_table_with_cmds_as_str(L, "files", prefix)} ,
+            {"includedirs", get_lua_table_as_str(L, "include_dirs")},
+            {"defines", get_lua_table_as_str(L, "preproc_opts")},
+            {"libdirs", get_lua_table_as_str(L, "linker_opts")},
+            {"links", get_lua_table_as_str(L, "dependencies")}, 
+        };
+        for (auto& [k, v] : str_keywords) {
+            insert_field_str(lines, k, v);
+        }
+        for (auto& [k, v] : tbl_keywords) {
+            insert_field_tbl(lines, k, v);
+        }
+        result = join(*lines, "\n");
+        return result;
     }
 
     std::string populate_simple_build_premake_template(lua_State* L, const std::string& contents)
     {
-
+        std::string result = contents;
+        std::vector<std::string> temp_vec = split(result, "\n");
+        std::vector<std::string>* lines = &temp_vec;
+        std::string language = get_lua_str(L, "compiler");
+        if (language == "g++") language = "C++";
+        else if (language == "gcc" || language == "clang") language = "C";
+        std::unordered_map<std::string, std::string> str_keywords = {
+            {"workspace", get_blmake_config_type(L)} ,
+            {"location", get_lua_str(L, "out_dir")},
+            {"project", get_blmake_config_type(L)},
+            {"language", language},
+            {"targetdir", get_lua_str(L, "out_dir")},
+            {"objdir", get_lua_str(L, "out_dir")+"/obj"},
+        };
+        std::unordered_map<std::string, std::string> tbl_keywords = {
+            {"files", get_lua_table_with_cmds_as_str(L, "files", "")} ,
+            {"includedirs", get_lua_table_as_str(L, "include_dirs")},
+        };
+        for (auto& [k, v] : str_keywords) {
+            insert_field_str(lines, k, v);
+        }
+        for (auto& [k, v] : tbl_keywords) {
+            insert_field_tbl(lines, k, v);
+        }
+        result = join(*lines, "\n");
+        return result;
     }
 
     std::string populate_tiny_build_premake_template(lua_State* L, const std::string& contents)
     {
-
+        std::string result = contents;
+        std::vector<std::string> temp_vec = split(result, "\n");
+        std::vector<std::string>* lines = &temp_vec;
+        std::string language = get_lua_str(L, "compiler");
+        if (language == "g++") language = "C++";
+        else if (language == "gcc" || language == "clang") language = "C";
+        std::unordered_map<std::string, std::string> str_keywords = {
+            {"workspace", get_blmake_config_type(L)} ,
+            {"location", get_lua_str(L, "out_dir")},
+            {"project", get_blmake_config_type(L)},
+            {"language", language},
+            {"targetdir", get_lua_str(L, "out_dir")},
+            {"objdir", get_lua_str(L, "out_dir")+"/obj"}, 
+        };
+        std::unordered_map<std::string, std::string> tbl_keywords = {
+            {"files", get_lua_table_with_cmds_as_str(L, "files", "")} ,
+        };
+        for (auto& [k, v] : str_keywords) {
+            insert_field_str(lines, k, v);
+        }
+        for (auto& [k, v] : tbl_keywords) {
+            insert_field_tbl(lines, k, v);
+        }
+        result = join(*lines, "\n");
+        return result;
     }
 
     std::string populate_test_build_premake_template(lua_State* L, const std::string contents)
     {
-
+        std::string result = contents;
+        std::vector<std::string> temp_vec = split(result, "\n");
+        std::vector<std::string>* lines = &temp_vec;
+        std::string tbl = get_lua_table_as_str(L, "lang_exts");
+        std::string language = get_lua_str(L, "compiler");
+        if (language == "g++") language = "C++";
+        else if (language == "gcc" || language == "clang") language = "C";
+        std::unordered_map<std::string, std::string> str_keywords = {
+            {"workspace", get_blmake_config_type(L)} ,
+            {"location", get_lua_str(L, "out_dir")},
+            {"project", get_blmake_config_type(L)},
+            {"language", language},
+            {"targetdir", get_lua_str(L, "out_dir")},
+            {"objdir", get_lua_str(L, "out_dir")+"/obj"},
+        };
+        std::string prefix = get_lua_str(L, "src_dir");
+        std::string options = {
+            get_lua_table_with_cmds_as_str(L, "warnings", "-W") + " " + 
+            get_lua_str(L, "profiling")
+        };
+        options = remove_extra_spaces(options);
+        if (!prefix.empty()) prefix += "/";
+        std::string prebuild = "";
+        std::string postbuild = "";
+        lua_getfield(L, -1, "hooks");
+        if (lua_istable(L, -1)) {
+            lua_getfield(L, -1, "pre_build");
+            if (lua_isstring(L, -1)) {
+                prebuild = lua_tostring(L, -1);
+            }
+            lua_pop(L, 1);
+            lua_getfield(L, -1, "post_build");
+            if (lua_isstring(L, -1)) {
+                postbuild = lua_tostring(L, -1);
+            }
+            lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
+        std::unordered_map<std::string, std::string> tbl_keywords = {
+            {"files", get_lua_table_with_cmds_as_str(L, "files", prefix)} ,
+            {"includedirs", get_lua_table_as_str(L, "include_dirs")},
+            {"defines", get_lua_table_as_str(L, "preproc_opts")},
+            {"buildoptions", options},
+            {"libdirs", get_lua_table_as_str(L, "linker_opts")},
+            {"links", get_lua_table_as_str(L, "dependencies")}, 
+            {"prebuildcommands", prebuild}, 
+            {"postbuildcommands", postbuild}, 
+        };
+        for (auto& [k, v] : str_keywords) {
+            insert_field_str(lines, k, v);
+        }
+        for (auto& [k, v] : tbl_keywords) {
+            insert_field_tbl(lines, k, v);
+        }
+        result = join(*lines, "\n");
+        return result;
     }
 
     std::string populate_premake_template(lua_State* L, const std::string& contents)
@@ -252,65 +387,6 @@ namespace Premake
         return result;
     }
 };
-
-/*
--- Full_build
-workspace "BendyLand" -- project_metadata.name else Full_build (table name)
-configurations { "Debug", "Release" } -- constant?
-location "custom_example/build" -- out_dir
-
-project "BendyLand" -- workspace?
-kind "ConsoleApp" -- constant?
-language "C++" -- infer from compiler
-targetdir "custom_example/build" -- out_dir
-objdir "custom_example/build/obj" -- out_dir + "/obj"?
-
--- Compiler and files
-files { "custom_example/main.cpp", "custom_example/utils.cpp" } -- src_dir + files
-includedirs { "custom_example/include" } -- include_dirs
-
--- Preprocessor options
-defines { "DEBUG" } -- preproc_opts
-
--- Platform-specific options
-architecture "arm" -- constant w/ option to change?
-
--- Language standard
-cppdialect "C++20" -- lang_exts if -std=c++XX
-
--- Build options
-filter "configurations:Debug"
-    defines { "DEBUG" }
-    symbols "On"
-    optimize "Off"
-
-filter "configurations:Release"
-    defines { "NDEBUG" }
-    symbols "Off"
-    optimize "Full"
-    flags { "LinkTimeOptimization" } -- lto
-
--- Warnings and flags
-buildoptions {
-    "-Wall", "-Werror", "-pg", "-flto", "-std=c++20"
-} -- warnings, profiling, lto, lang_exts
-
--- Linker options
-libdirs { "custom_example/libs" } -- linker_opts
-links { "m", "pthread" } -- dependencies
-
--- Custom scripts/hooks
-prebuildcommands {
-    "custom_example/scripts/pre_build.sh"
-} -- hooks.pre_build
-
-postbuildcommands {
-    "custom_example/scripts/post_build.sh"
-} -- hooks.post_build
-
--- Additional flags
-buildoptions { "-fno-stack-protector" } -- custom_flags
-*/
 
 namespace Blmake
 {

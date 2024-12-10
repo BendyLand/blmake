@@ -23,10 +23,12 @@ A simple and straightforward build tool for C/C++!
      - Rather than defining its own custom syntax, `blmake` will expect a Lua file called "blmake.lua".
      - There are commands to generate this config file. 
        - The command to generate a config file is `blmake gen <option>`.
-       - The options are: `full`, `build`, `simple`, `tiny`, and `test`. Leaving the option blank will default to `full`.
+       - The options are: `full`, `build`, `simple`, `tiny`, and `test`. Leaving the option blank will default to `full`. 
+     - After generating the blmake config file and filling it in, you can use this information to generate a roughly equivalent Premake file!
+       - The commands to generate a Premake config file are `blmake gen premake` or `blmake premake`.
+       - Note: this tool cannot do anything but generate the Premake file. You will still need to have Premake5 installed to use the resulting file. This is the default behavior for compilation on Windows machines, since running a compiler directly isn't as straightforward as on Unix-like machines.
      - There are commands to generate a file watcher for your project using a blmake.lua config file.
        - The command to generate the watcher directory is `blmake watch`.
        - The build tool will automatically run incremental builds if it detects the presence of a watcher directory.
        - The file watcher depends on a file it generates called 'prev.json'. If the data kept in this file becomes corrupted, it will no longer function properly. To reset 'prev.json', run `blbld watch clean`.
-     - *Build commands TBD*
      - *Note: The command `blmake` is not available by default on your system. You will need to build the project, rename the binary, and give it executable permissions to use it in this way.*

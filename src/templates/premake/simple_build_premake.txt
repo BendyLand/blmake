@@ -13,9 +13,6 @@ project ""
    files {}
    includedirs {}
 
-   -- Optional hooks
-   prebuildcommands {}
-
    -- Debug settings
    filter "configurations:Default"
       symbols "Off"
