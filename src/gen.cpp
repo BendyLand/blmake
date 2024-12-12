@@ -367,6 +367,8 @@ namespace Premake
         std::string result = "";
         std::string kind = get_blmake_config_type(L);
         //todo: update the if-else pattern to a map to <string, function pointer>
+        // first move the getglobal call inside each branching function.
+        // then replace the conditional with a map and call based on key presence.
         if (kind == "Full_build") {
             lua_getglobal(L, "Full_build");
             result = populate_full_build_premake_template(L, contents);

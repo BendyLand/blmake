@@ -308,7 +308,7 @@ std::string extract_post_build_path(lua_State* L)
         result = perform_post_build_path_extraction(L, "Simple_build");
     }
     else if (check_table(L, "Test_build")) {
-        result = perform_post_build_path_extraction(L, "Test, build");
+        result = perform_post_build_path_extraction(L, "Test_build");
     }
     return result;
 }

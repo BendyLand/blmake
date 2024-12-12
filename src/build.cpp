@@ -136,6 +136,10 @@ std::vector<std::string> construct_incremental_full_build_commands(lua_State* L)
     if (!temp_cmd.empty()) link_command += " " + temp_cmd;
     temp_cmd = get_lua_table_with_cmds_as_str(L, "dependencies", "-l");
     if (!temp_cmd.empty()) link_command += " " + temp_cmd;
+    temp_cmd = get_lua_table_with_cmds_as_str(L, "framework_paths", "-F");
+    if (!temp_cmd.empty()) command += " " + temp_cmd;
+    temp_cmd = get_lua_table_with_cmds_as_str(L, "frameworks", "-framework ");
+    if (!temp_cmd.empty()) command += " " + temp_cmd;
     for (std::string file : all_files) {
         std::string output = file.substr(0, file.find_last_of(".")) + ".o";
         link_command += " " + output;
@@ -191,6 +195,10 @@ std::string construct_full_build_command(lua_State* L)
     temp_cmd = get_lua_table_with_cmds_as_str(L, "linker_opts", "-L");
     if (!temp_cmd.empty()) command += " " + temp_cmd;
     temp_cmd = get_lua_table_with_cmds_as_str(L, "dependencies", "-l");
+    if (!temp_cmd.empty()) command += " " + temp_cmd;
+    temp_cmd = get_lua_table_with_cmds_as_str(L, "framework_paths", "-F");
+    if (!temp_cmd.empty()) command += " " + temp_cmd;
+    temp_cmd = get_lua_table_with_cmds_as_str(L, "frameworks", "-framework ");
     if (!temp_cmd.empty()) command += " " + temp_cmd;
     temp_cmd = get_lua_table_with_cmds_as_str(L, "warnings", "-W");
     if (!temp_cmd.empty()) command += " " + temp_cmd;
