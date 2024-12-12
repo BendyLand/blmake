@@ -7,7 +7,6 @@ using std::string; using std::cout; using std::endl;
 int main()
 {
     cout << "Hello old new test!" << endl;
-
     string test1 = "test";
 
     string test2 = "#include <stdio.h>";
