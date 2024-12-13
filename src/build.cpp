@@ -74,6 +74,10 @@ std::vector<std::string> construct_incremental_full_build_commands(lua_State* L)
     if (!temp_cmd.empty()) command += " " + temp_cmd;
     temp_cmd = get_lua_table_with_cmds_as_str(L, "warnings", "-W");
     if (!temp_cmd.empty()) command += " " + temp_cmd;
+    temp_cmd = get_lua_table_with_cmds_as_str(L, "framework_paths", "-F");
+    if (!temp_cmd.empty()) command += " " + temp_cmd;
+    temp_cmd = get_lua_table_with_cmds_as_str(L, "frameworks", "-framework ");
+    if (!temp_cmd.empty()) command += " " + temp_cmd;
     lua_getfield(L, -1, "debugging");
     if (lua_isboolean(L, -1)) {
         bool debugging = lua_toboolean(L, -1);
