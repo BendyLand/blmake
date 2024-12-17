@@ -9,6 +9,21 @@ size_t handle_cl_args(int argc, char** argv, lua_State* L);
 size_t check_for_gen_arg(int argc, char** argv);
 std::string get_lua_string(lua_State* L, const char* name);
 std::vector<std::string> get_lua_string_array(lua_State* L, const char* name);
+namespace Cmake 
+{
+    std::string get_cmake_contents(lua_State* L);
+    std::string generate_cmake_build(lua_State* L);
+    size_t handle_template_generation(int argc, char** argv, lua_State* L);
+    std::string populate_cmake_template(lua_State* L, const std::string& contents);
+    std::string populate_simple_build_cmake_template(lua_State* L, const std::string& contents);
+    std::string populate_tiny_build_cmake_template(lua_State* L, const std::string& contents);
+    void insert_into_multiline_parens(std::vector<std::string>*& vec, const std::string& field, std::string& value);
+    void insert_into_quotes(std::vector<std::string>*& vec, const std::string& field, const std::string& value);
+    void insert_after_leading_paren(std::vector<std::string>*& vec, const std::string& field, const std::string& value);
+    void insert_before_trailing_paren(std::vector<std::string>*& vec, const std::string& field, const std::string& value);
+    void insert_after_slash(std::vector<std::string>*& vec, const std::string& field, const std::string& value);
+    std::string populate_full_build_cmake_template(lua_State* L, const std::string& contents);
+};
 
 namespace Premake
 {

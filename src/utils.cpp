@@ -1,5 +1,21 @@
 #include "utils.hpp"
 
+void add_all_leading_tabs(std::string& str)
+{
+    std::vector<std::string> lines = split(str, "\n");
+    for (size_t i = 0; i < lines.size(); i++) {
+        lines[i] = "\t" + lines[i];
+    }
+    str = join(lines, "\n");
+}
+
+void remove_space_after_slash(std::string& str)
+{
+    size_t idx = str.find("/");
+    if (isalnum(str[idx+1]) || idx == -1) return;
+    str.erase(idx+1, 1);
+}
+
 std::string to_uppercase(const std::string& str)
 {
     std::string result = "";
@@ -48,10 +64,18 @@ std::string add_quotes(const std::string& str)
     return "\"" + str + "\"";
 }
 
-size_t find(std::vector<std::string> vec, std::string item)
+size_t find(const std::vector<std::string>& vec, const std::string& item)
 {
     for (size_t i = 0; i < vec.size(); i++) {
         if (vec[i].find(item) <= 10) return i;
+    }
+    return SIZE_T_MAX;
+}
+
+size_t search(const std::vector<std::string>& vec, const std::string& item)
+{
+    for (size_t i = 0; i < vec.size(); i++) {
+        if (vec[i].find(item) != std::string::npos) return i;
     }
     return SIZE_T_MAX;
 }

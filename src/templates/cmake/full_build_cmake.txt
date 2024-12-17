@@ -1,0 +1,57 @@
+# Minimum CMake version
+cmake_minimum_required(VERSION 3.14)
+
+# Project metadata
+project( VERSION 0.0.1)
+
+# Specify the C++ standard
+set(CMAKE_CXX_STANDARD )
+set(CMAKE_CXX_STANDARD_REQUIRED )
+
+# Define build type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE )
+endif()
+
+# Compiler options
+set(CMAKE_CXX_COMPILER "")
+
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ )
+
+# Source files
+set(SOURCE_FILES
+    
+)
+
+# Output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ )
+
+# Compilation flags
+set(COMPILATION_FLAGS "")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(COMPILATION_FLAGS "-g")
+endif()
+
+# Add executable
+add_executable( ${SOURCE_FILES})
+
+# Apply compilation flags
+target_compile_options( PRIVATE ${COMPILATION_FLAGS})
+
+# Link libraries
+target_link_libraries( PRIVATE )
+
+# Custom linker paths
+link_directories(${CMAKE_SOURCE_DIR}/)
+
+# Pre-build and post-build hooks
+add_custom_command(TARGET  PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "Running pre-build script..."
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/
+)
+
+add_custom_command(TARGET  POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "Running post-build script..."
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/
+)

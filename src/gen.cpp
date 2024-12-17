@@ -9,7 +9,318 @@
 #include "templates/premake/simple_build_premake.h"
 #include "templates/premake/tiny_build_premake.h"
 #include "templates/premake/test_build_premake.h"
+#include "templates/cmake/full_build_cmake.h"
+#include "templates/cmake/simple_build_cmake.h"
+#include "templates/cmake/tiny_build_cmake.h"
 #include "watcher_config.hpp"
+
+namespace Cmake 
+{
+    std::string get_cmake_contents(lua_State* L)
+    {
+        std::string kind = get_blmake_config_type(L);
+        std::string result = "";
+        if (kind == "Full_build") {
+            for (size_t i = 0; i < full_build_cmake_txt_len; i++) result += full_build_cmake_txt[i];
+        }
+        else if (kind == "Build") {
+            // Build converts roughly to the full cmake config
+            for (size_t i = 0; i < full_build_cmake_txt_len; i++) result += full_build_cmake_txt[i];
+        }
+        else if (kind == "Simple_build") {
+            for (size_t i = 0; i < simple_build_cmake_txt_len; i++) result += simple_build_cmake_txt[i];
+        }
+        else if (kind == "Tiny_build") {
+            for (size_t i = 0; i < tiny_build_cmake_txt_len; i++) result += tiny_build_cmake_txt[i];
+        }
+        else if (kind == "Test_build") {
+            // Test_build converts roughly to the full cmake config
+            for (size_t i = 0; i < full_build_cmake_txt_len; i++) result += full_build_cmake_txt[i];
+        }
+        else {
+            for (size_t i = 0; i < full_build_cmake_txt_len; i++) result += full_build_cmake_txt[i];
+        }
+        return result;
+    }
+
+    std::string generate_cmake_build(lua_State* L)
+    {
+        std::string contents = get_cmake_contents(L);
+        contents = populate_cmake_template(L, contents);
+        return contents;
+    }
+
+    size_t handle_template_generation(int argc, char** argv, lua_State* L)
+    {
+        std::string contents = generate_cmake_build(L);
+        size_t err = write_string_to_file("./CMakeLists.txt", contents);
+        if (err == 0) std::cout << "CMakeLists.txt generated successfully!" << std::endl;
+        return err;
+    }
+
+    std::string populate_cmake_template(lua_State* L, const std::string& contents)
+    {
+        std::string result = "";
+        std::string kind = get_blmake_config_type(L);
+        //todo: update the if-else pattern to a map to <string, function pointer>
+        // first move the getglobal call inside each branching function.
+        // then replace the conditional with a map and call based on key presence.
+        if (kind == "Full_build") {
+            lua_getglobal(L, "Full_build");
+            result = populate_full_build_cmake_template(L, contents);
+        }
+        else if (kind == "Build") {
+            lua_getglobal(L, "Build");
+            // Build and Full_build have the same config for cmake
+            result = populate_full_build_cmake_template(L, contents);
+        }
+        else if (kind == "Simple_build") {
+            lua_getglobal(L, "Simple_build");
+            result = populate_simple_build_cmake_template(L, contents);
+        }
+        else if (kind == "Tiny_build") {
+            lua_getglobal(L, "Tiny_build");
+            result = populate_tiny_build_cmake_template(L, contents);
+        }
+        else if (kind == "Test_build") {
+            lua_getglobal(L, "Test_build");
+            // Test_build and Full_build have the same config for cmake
+            result = populate_full_build_cmake_template(L, contents);
+        }
+        return result;
+    }
+
+    void insert_into_quotes(std::vector<std::string>*& vec, const std::string& field, const std::string& value)
+    {
+        size_t idx = find(*vec, field);
+        size_t dq_idx = (*vec)[idx].find("\"");
+        if ((*vec)[idx][dq_idx+1] != '"') return;
+        std::string new_line = (*vec)[idx].insert(dq_idx+1, value);
+        (*vec)[idx] = new_line;
+    }
+
+    void insert_after_leading_paren(std::vector<std::string>*& vec, const std::string& field, const std::string& value)
+    {
+        size_t idx = find(*vec, field);
+        size_t p_idx = (*vec)[idx].find("(");
+        if (isalnum((*vec)[idx][p_idx+1])) return;
+        std::string new_line = (*vec)[idx].insert(p_idx+1, value);
+        (*vec)[idx] = new_line;
+    }
+
+    void insert_into_middle_of_parens(std::vector<std::string>*& vec, const std::string& field, const std::string& value)
+    {
+        size_t idx = search(*vec, field);
+        size_t s_idx = (*vec)[idx].find("  ");
+        if (s_idx == std::string::npos) return;
+        std::string new_line = (*vec)[idx].insert(s_idx+1, value);
+        (*vec)[idx] = new_line;
+    }
+
+    void insert_before_trailing_paren(std::vector<std::string>*& vec, const std::string& field, const std::string& value)
+    {
+        size_t idx = find(*vec, field);
+        size_t p_idx = (*vec)[idx].find(")");
+        if (isalnum((*vec)[idx][p_idx+1])) return;
+        std::string new_line = (*vec)[idx].insert(p_idx, value);
+        remove_space_after_slash(new_line);
+        (*vec)[idx] = new_line;
+    }
+
+    void insert_after_slash(std::vector<std::string>*& vec, const std::string& field, const std::string& value)
+    {
+        size_t idx = search(*vec, field) + 2;
+        rtrim((*vec)[idx], " ");
+        if (!(*vec)[idx].ends_with("/")) return;
+        (*vec)[idx] += value;
+    }
+
+    void insert_into_multiline_parens(std::vector<std::string>*& vec, const std::string& field, std::string& value)
+    {
+        size_t idx = find(*vec, field);
+        while (!(*vec)[idx+1].empty()) idx++;
+        add_all_leading_tabs(value);
+        (*vec)[idx-1] = value;
+    }
+
+    std::string populate_full_build_cmake_template(lua_State* L, const std::string& contents)
+    {
+        std::string result = contents;
+        std::vector<std::string> temp_vec = split(result, "\n");
+        std::vector<std::string>* lines = &temp_vec;
+        std::string compilation_flags = "";
+        compilation_flags += get_lua_table_with_cmds_as_str(L, "warnings", "-W") + " ";
+        compilation_flags += get_lua_table_with_cmds_as_str(L, "preproc_opts", "-D") + " ";
+        compilation_flags += get_lua_str(L, "profiling") + " ";
+        compilation_flags += get_lua_str(L, "optimization") + " ";
+        compilation_flags += get_lua_str(L, "lto") + " ";
+        compilation_flags += get_lua_table_as_str(L, "platform_opts") + " ";
+        trim(compilation_flags, " ");
+        std::string files = join(get_lua_table(L, "files"), "\n");
+        std::unordered_map<std::string, std::string> str_keywords = {
+            {"CMAKE_CXX_COMPILER", get_lua_str(L, "compiler")},
+            {"COMPILATION_FLAGS", compilation_flags}
+        };
+        std::unordered_map<std::string, std::string> mline_paren_keywords = {
+            {"SOURCE_FILES", files},
+        };
+        std::unordered_map<std::string, std::string> leading_paren_keywords = {
+            {"project(", get_lua_str(L, "output")},
+            {"add_executable(", get_lua_str(L, "output")},
+            {"target_compile_options(", get_lua_str(L, "output")},
+            {"target_link_libraries(", get_lua_str(L, "output")},
+        };
+        std::string tbl = get_lua_table_as_str(L, "lang_exts");
+        std::string dialect = tbl.find("-std=c++") != std::string::npos ? to_uppercase(tbl.substr(tbl.find("-std=c++")+8, 10)) : "";
+        std::unordered_map<std::string, std::string> trailing_paren_keywords = {
+            {"CMAKE_CXX_STANDARD", dialect},
+            {"CMAKE_CXX_STANDARD_REQUIRED", dialect.size()>0?"ON":"OFF"},
+            {"set(CMAKE_BUILD_TYPE", get_lua_str(L, "build_type")},
+            {"include_directories(", get_lua_table_as_str(L, "include_dirs")},
+            {"CMAKE_RUNTIME_OUTPUT_DIRECTORY ", get_lua_str(L, "out_dir")},
+            {"target_link_libraries(", get_lua_table_as_str(L, "dependencies")},
+            {"link_directories(", get_lua_table_as_str(L, "linker_opts")},
+        };
+        std::string prebuild = "";
+        std::string postbuild = "";
+        lua_getfield(L, -1, "hooks");
+        if (lua_istable(L, -1)) {
+            lua_getfield(L, -1, "pre_build");
+            if (lua_isstring(L, -1)) {
+                prebuild = lua_tostring(L, -1);
+            }
+            lua_pop(L, 1);
+            lua_getfield(L, -1, "post_build");
+            if (lua_isstring(L, -1)) {
+                postbuild = lua_tostring(L, -1);
+            }
+            lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
+        std::unordered_map<std::string, std::string> trailing_slash_keywords = {
+            {"PRE_BUILD", prebuild},
+            {"POST_BUILD", postbuild},
+        };
+        std::unordered_map<std::string, std::string> middle_of_parens_keywords = {
+            {"PRE_BUILD", get_lua_str(L, "output")},
+            {"POST_BUILD", get_lua_str(L, "output")},
+        };
+        for (auto& [k, v] : str_keywords) {
+            insert_into_quotes(lines, k, v);
+        }
+        for (auto& [k, v] : mline_paren_keywords) {
+            insert_into_multiline_parens(lines, k, v);
+        }
+        for (auto& [k, v] : leading_paren_keywords) {
+            insert_after_leading_paren(lines, k, v);
+        }
+        for (auto& [k, v] : trailing_paren_keywords) {
+            insert_before_trailing_paren(lines, k, v);
+        }
+        for (auto& [k, v] : trailing_slash_keywords) {
+            insert_after_slash(lines, k, v);
+        }
+        for (auto& [k, v] : middle_of_parens_keywords) {
+            insert_into_middle_of_parens(lines, k, v);
+        }
+        return join(*lines, "\n");
+    }
+
+    std::string populate_tiny_build_cmake_template(lua_State* L, const std::string& contents)
+    {
+        std::string result = contents;
+        std::vector<std::string> temp_vec = split(result, "\n");
+        std::vector<std::string>* lines = &temp_vec;
+        std::string files = join(get_lua_table(L, "files"), "\n");
+        std::unordered_map<std::string, std::string> mline_paren_keywords = {
+            {"SOURCE_FILES", files},
+        };
+        std::unordered_map<std::string, std::string> leading_paren_keywords = {
+            {"project(", get_lua_str(L, "output")},
+            {"add_executable(", get_lua_str(L, "output")},
+        };
+        for (auto& [k, v] : mline_paren_keywords) {
+            insert_into_multiline_parens(lines, k, v);
+        }
+        for (auto& [k, v] : leading_paren_keywords) {
+            insert_after_leading_paren(lines, k, v);
+        }
+        return join(*lines, "\n");
+    }
+
+    std::string populate_simple_build_cmake_template(lua_State* L, const std::string& contents)
+    {
+        std::string result = contents;
+        std::vector<std::string> temp_vec = split(result, "\n");
+        std::vector<std::string>* lines = &temp_vec;
+        std::string files = join(get_lua_table(L, "files"), "\n");
+        std::unordered_map<std::string, std::string> str_keywords = {
+            {"CMAKE_CXX_COMPILER", get_lua_str(L, "compiler")},
+        };
+        std::unordered_map<std::string, std::string> mline_paren_keywords = {
+            {"SOURCE_FILES", files},
+        };
+        std::unordered_map<std::string, std::string> leading_paren_keywords = {
+            {"project(", get_lua_str(L, "output")},
+            {"add_executable(", get_lua_str(L, "output")},
+            {"target_link_libraries(", get_lua_str(L, "output")},
+        };
+        std::string tbl = get_lua_table_as_str(L, "lang_exts");
+        std::string dialect = tbl.find("-std=c++") != std::string::npos ? to_uppercase(tbl.substr(tbl.find("-std=c++")+8, 10)) : "";
+        std::unordered_map<std::string, std::string> trailing_paren_keywords = {
+            {"CMAKE_CXX_STANDARD", dialect},
+            {"CMAKE_CXX_STANDARD_REQUIRED", dialect.size()>0?"ON":"OFF"},
+            {"include_directories(", get_lua_table_as_str(L, "include_dirs")},
+            {"CMAKE_RUNTIME_OUTPUT_DIRECTORY ", get_lua_str(L, "out_dir")},
+            {"target_link_libraries(", get_lua_table_as_str(L, "dependencies")},
+            {"link_directories(", get_lua_table_as_str(L, "linker_opts")},
+        };
+        std::string prebuild = "";
+        std::string postbuild = "";
+        lua_getfield(L, -1, "hooks");
+        if (lua_istable(L, -1)) {
+            lua_getfield(L, -1, "pre_build");
+            if (lua_isstring(L, -1)) {
+                prebuild = lua_tostring(L, -1);
+            }
+            lua_pop(L, 1);
+            lua_getfield(L, -1, "post_build");
+            if (lua_isstring(L, -1)) {
+                postbuild = lua_tostring(L, -1);
+            }
+            lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
+        std::unordered_map<std::string, std::string> trailing_slash_keywords = {
+            {"PRE_BUILD", prebuild},
+            {"POST_BUILD", postbuild},
+        };
+        std::unordered_map<std::string, std::string> middle_of_parens_keywords = {
+            {"PRE_BUILD", get_lua_str(L, "output")},
+            {"POST_BUILD", get_lua_str(L, "output")},
+        };
+        for (auto& [k, v] : str_keywords) {
+            insert_into_quotes(lines, k, v);
+        }
+        for (auto& [k, v] : mline_paren_keywords) {
+            insert_into_multiline_parens(lines, k, v);
+        }
+        for (auto& [k, v] : leading_paren_keywords) {
+            insert_after_leading_paren(lines, k, v);
+        }
+        for (auto& [k, v] : trailing_paren_keywords) {
+            insert_before_trailing_paren(lines, k, v);
+        }
+        for (auto& [k, v] : trailing_slash_keywords) {
+            insert_after_slash(lines, k, v);
+        }
+        for (auto& [k, v] : middle_of_parens_keywords) {
+            insert_into_middle_of_parens(lines, k, v);
+        }
+        return join(*lines, "\n");
+    }
+
+};
 
 // Helper function to get a string field from the Lua table
 std::string get_lua_string(lua_State* L, const char* name)
@@ -69,8 +380,22 @@ size_t handle_cl_args(int argc, char** argv, lua_State* L)
         size_t err = Watcher::generate_watcher_structure(L);
         return err;
     }
-    else if (std::string(argv[1]).find("premake") != std::string::npos || std::string(argv[1]) == ("gen")) {
+    else if (std::string(argv[1]) == "gen") {
+        if (std::string(argv[2]) == "premake") {
+            size_t err = Premake::handle_template_generation(argc, argv, L);
+            return err;
+        }
+        else {
+            size_t err = Cmake::handle_template_generation(argc, argv, L);
+            return err;
+        }
+    }
+    else if (std::string(argv[1]) == "premake") {
         size_t err = Premake::handle_template_generation(argc, argv, L);
+        return err;
+    }
+    else if (std::string(argv[1]) == "cmake") {
+        size_t err = Cmake::handle_template_generation(argc, argv, L);
         return err;
     }
     return 1;
@@ -469,7 +794,7 @@ namespace Blmake
                 size_t err = generate_test_build();
                 if (err) exit(1);
             }
-            else if (check == std::string("premake")) {
+            else if (check == std::string("premake") || check == std::string("cmake")) {
                 return 2;
             }
             else {

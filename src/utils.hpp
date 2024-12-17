@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include "os.hpp"
 
+void add_all_leading_tabs(std::string& str);
+void remove_space_after_slash(std::string& str);
 size_t copy_template_file(const std::string& from, const std::string& to);
 bool check_table(lua_State *L, const char* tableName);
 std::string get_table_commands(lua_State* L, const std::string& prefix);
@@ -51,6 +53,7 @@ std::string remove_extra_spaces(const std::string& str);
 std::string add_quotes_and_commas(std::string& str);
 std::string to_lowercase(const std::string& str);
 std::string to_uppercase(const std::string& str);
+size_t search(const std::vector<std::string>& vec, const std::string& item);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, std::vector<T> vec)
@@ -74,11 +77,12 @@ bool contains(std::vector<T> vec, T item)
 
 /** 
  * Searches the FIRST 10 CHARS of each entry for the occurrence of a substring.
+ * For a full text search, use the `search` function.
  * @param vec The vector to look through.
  * @param item The substring to look for.
  * @returns The first entry of `vec` which contains `item` in the first 10 chars.
  */
-size_t find(std::vector<std::string> vec, std::string item);
+size_t find(const std::vector<std::string>& vec, const std::string& item);
 
 template <typename T>
 size_t find(std::vector<T> vec, T item)

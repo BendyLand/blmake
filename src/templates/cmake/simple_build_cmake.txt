@@ -1,0 +1,40 @@
+# Minimum CMake version
+cmake_minimum_required(VERSION 3.14)
+
+# Project metadata
+project( VERSION 0.0.1)
+
+# Specify the C++ standard
+set(CMAKE_CXX_STANDARD )
+set(CMAKE_CXX_STANDARD_REQUIRED )
+
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ )
+
+# Source files
+set(SOURCE_FILES
+    
+)
+
+# Output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ )
+
+# Add executable
+add_executable( ${SOURCE_FILES})
+
+# Link libraries
+target_link_libraries( PRIVATE )
+
+# Custom linker paths
+link_directories(${CMAKE_SOURCE_DIR}/)
+
+# Pre-build and post-build hooks
+add_custom_command(TARGET  PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "Running pre-build script..."
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/
+)
+
+add_custom_command(TARGET  POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "Running post-build script..."
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/
+)

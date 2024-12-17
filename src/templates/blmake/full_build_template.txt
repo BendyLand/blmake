@@ -13,7 +13,6 @@ Full_build = {
     dependencies = {},       -- Libraries to link against, e.g. {"lib1", "lib2"}
     framework_paths = {},    -- Paths to check for required frameworks (MacOS only).
     frameworks = {},         -- Framework names to include (MacOS only).
-    dependencies = {},       -- Libraries to link against, e.g. {"lib1", "lib2"}
     output = "",             -- Output file name (optional, defaults to a.out)
     optimization = "",       -- Optimization level (e.g., "-O2", "-Os")
     debugging = false,       -- A BOOLEAN value indicating whether to include debug info ("-g")

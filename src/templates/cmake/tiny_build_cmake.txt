@@ -1,0 +1,13 @@
+# Minimum CMake version
+cmake_minimum_required(VERSION 3.14)
+
+# Project metadata
+project( VERSION 0.0.1)
+
+# Source files
+set(SOURCE_FILES
+    
+)
+
+# Add executable
+add_executable( ${SOURCE_FILES})
