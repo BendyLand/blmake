@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include "os.hpp"
 
+std::string replace_all(std::string& str, const std::string& from, const std::string& to);
 void add_all_leading_tabs(std::string& str);
 void remove_space_after_slash(std::string& str);
 size_t copy_template_file(const std::string& from, const std::string& to);

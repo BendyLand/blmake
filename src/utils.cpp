@@ -1,5 +1,18 @@
 #include "utils.hpp"
 
+std::string replace_all(std::string& str, const std::string& from, const std::string& to)
+{
+    std::string result = "";
+    while (str.find(from) != std::string::npos) {
+        std::string token = str.substr(0, str.find(from));
+        result += token;
+        result += to;
+        str.erase(0, str.find(from)+1);
+    }
+    if (str.size() > 0) result += str;
+    return result;
+}
+
 void add_all_leading_tabs(std::string& str)
 {
     std::vector<std::string> lines = split(str, "\n");

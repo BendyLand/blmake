@@ -124,6 +124,9 @@ namespace Cmake
         if (isalnum((*vec)[idx][p_idx+1])) return;
         std::string new_line = (*vec)[idx].insert(p_idx, value);
         remove_space_after_slash(new_line);
+        if (new_line.find("//") != std::string::npos) {
+            new_line.erase(new_line.find("//"), 1);
+        }
         (*vec)[idx] = new_line;
     }
 
@@ -138,9 +141,9 @@ namespace Cmake
     void insert_into_multiline_parens(std::vector<std::string>*& vec, const std::string& field, std::string& value)
     {
         size_t idx = find(*vec, field);
-        while (!(*vec)[idx+1].empty()) idx++;
+        while (!(*vec)[idx].empty()) idx++;
         add_all_leading_tabs(value);
-        (*vec)[idx-1] = value;
+        (*vec)[idx] = value;
     }
 
     std::string populate_full_build_cmake_template(lua_State* L, const std::string& contents)
@@ -159,10 +162,14 @@ namespace Cmake
         std::string files = join(get_lua_table(L, "files"), "\n");
         std::unordered_map<std::string, std::string> str_keywords = {
             {"CMAKE_CXX_COMPILER", get_lua_str(L, "compiler")},
-            {"COMPILATION_FLAGS", compilation_flags}
+            {"COMPILATION_FLAGS", compilation_flags},
+            {"CMAKE_PREFIX_PATH", get_lua_table_as_str(L, "framework_paths")},
         };
+        std::string all_deps = get_lua_table_as_str(L, "dependencies") + " " + get_lua_table_as_str(L, "framework_paths");
+        all_deps = replace_all(all_deps, " ", "\n");
         std::unordered_map<std::string, std::string> mline_paren_keywords = {
-            {"SOURCE_FILES", files},
+            {"set(SOURCE_FILES", files},
+            {"target_link_libraries(", all_deps},
         };
         std::unordered_map<std::string, std::string> leading_paren_keywords = {
             {"project(", get_lua_str(L, "output")},
@@ -178,7 +185,6 @@ namespace Cmake
             {"set(CMAKE_BUILD_TYPE", get_lua_str(L, "build_type")},
             {"include_directories(", get_lua_table_as_str(L, "include_dirs")},
             {"CMAKE_RUNTIME_OUTPUT_DIRECTORY ", get_lua_str(L, "out_dir")},
-            {"target_link_libraries(", get_lua_table_as_str(L, "dependencies")},
             {"link_directories(", get_lua_table_as_str(L, "linker_opts")},
         };
         std::string prebuild = "";

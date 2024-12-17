@@ -23,7 +23,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ )
 
 # Source files
 set(SOURCE_FILES
-    
+
 )
 
 # Output directories
@@ -41,8 +41,16 @@ add_executable( ${SOURCE_FILES})
 # Apply compilation flags
 target_compile_options( PRIVATE ${COMPILATION_FLAGS})
 
+# Add framework path to cmake prefix path
+set(CMAKE_PREFIX_PATH "")
+
+# Find required package 
+find_package( REQUIRED COMPONENTS )
+
 # Link libraries
-target_link_libraries( PRIVATE )
+target_link_libraries( PRIVATE 
+
+)
 
 # Custom linker paths
 link_directories(${CMAKE_SOURCE_DIR}/)
