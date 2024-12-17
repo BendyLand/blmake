@@ -45,7 +45,7 @@ target_compile_options(main PRIVATE ${COMPILATION_FLAGS})
 # Add framework path to cmake prefix path
 set(CMAKE_PREFIX_PATH "")
 
-# Find Qt6 package with Charts
+# Find required package 
 find_package( REQUIRED COMPONENTS )
 
 # Link libraries
