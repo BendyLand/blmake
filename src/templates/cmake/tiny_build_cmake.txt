@@ -1,3 +1,5 @@
+# CMakeLists.txt generated from blmake.lua!
+
 # Minimum CMake version
 cmake_minimum_required(VERSION 3.14)
 
