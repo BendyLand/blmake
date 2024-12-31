@@ -2,17 +2,17 @@
 
 workspace "Full_build" 
 configurations { "Debug", "Release" } 
-location "build" 
+location "custom_example/build" 
 
 project "Full_build" 
 kind "ConsoleApp" 
 language "C++" 
-targetdir "build" 
-objdir "build/obj" 
+targetdir "custom_example/build" 
+objdir "custom_example/build/obj" 
 
 -- Compiler and files
-files { "main.cpp", "utils.cpp" } 
-includedirs { "include" } 
+files { "custom_example/main.cpp", "custom_example/utils.cpp" } 
+includedirs { "custom_example/include" } 
 
 -- Preprocessor options
 defines { "DEBUG" } 
@@ -36,10 +36,10 @@ filter "configurations:Release"
 buildoptions { "-Wall", "-Werror", "-flto", "-pg" } 
 
 -- Linker options
-libdirs { "libs" } 
+libdirs { "custom_example/libs" } 
 links { "m", "pthread" } 
 
 -- Custom scripts/hooks
-prebuildcommands { "scripts/pre_build.sh" } 
+prebuildcommands { "custom_example/scripts/pre_build.sh" } 
 
-postbuildcommands { "scripts/post_build.sh" } 
+postbuildcommands { "custom_example/scripts/post_build.sh" } 
