@@ -83,7 +83,7 @@ std::pair<int, std::string> OS::run_command_unix(const std::vector<std::string>&
 std::pair<int, std::string> OS::run_command(std::string& arg) 
 {
     std::pair<int, std::string> result;
-    std::vector<std::string> args = split(arg, " ");
+    std::vector<std::string> args = os_split(arg, " ");
     #if defined(OS_UNIX_LIKE)
         result = OS::run_command_unix(args);
     #else

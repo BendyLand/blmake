@@ -4,7 +4,9 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/lib/lua"
+                "/usr/bin/",
+                "/usr/include/lua5.2",
+                "/usr/include/lua5.3"
             ],
             "defines": [],
             "macFrameworkPath": [

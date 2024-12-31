@@ -602,7 +602,7 @@ std::vector<std::string> filter_file_list(const std::vector<std::string>& vec)
                 goto Next;
             }
         }
-        Next:
+        Next:;
     }
     return result;
 }

@@ -64,6 +64,7 @@
         "algorithm": "cpp",
         "__config": "cpp",
         "filesystem": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "*.tcc": "cpp"
     }
 }

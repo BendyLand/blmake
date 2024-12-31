@@ -3,6 +3,9 @@
 #include "os.hpp"
 #include "gen.hpp"
 
+// To compile on WSL
+// g++ -std=c++20 -I/usr/include/lua5.3 -L/usr/lib/x86_64-linux-gnu src/main.cpp src/utils.cpp src/build.cpp src/os.cpp src/gen.cpp -llua5.3 -o main
+
 namespace fs = std::filesystem;
 
 int main(int argc, char** argv)

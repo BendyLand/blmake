@@ -9,7 +9,7 @@ Simple_build = {
     lang_exts = {"-std=c++20"},     -- e.g., {"-std=c++20"}
     include_dirs = {},  -- e.g., {"include/"}
     linker_opts = {},   -- e.g., {"./src/libs"}
-    dependencies = {"lua"},  -- e.g., {"lib1", "lib2"}
+    dependencies = {"lua5.3"},  -- e.g., {"lib1", "lib2"}
     output = "main",        -- e.g., "myprogram"
     debugging = false,  -- e.g., true will add "-g"
     hooks = {},         -- e.g., {pre_build = "scripts/pre_build.sh"} 
