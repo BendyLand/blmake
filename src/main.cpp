@@ -66,8 +66,8 @@ int main(int argc, char** argv)
         std::pair<int, std::string> err = OS::run_command(command);
         std::cout << "Compiled successfully!\n" << std::endl;
     #else 
-        char* temp_args[2] = {"", "premake"};
-        size_t err = handle_cl_args(2, temp_args, L);
+        char temp_args[2][10] = {"", "premake"};
+        size_t err = handle_cl_args(2, (char**)temp_args, L);
         check_error_fatal((int)err, "Error handling command line arguments.");
     #endif
     }
