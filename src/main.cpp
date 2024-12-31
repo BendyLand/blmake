@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
     // Load and run the Lua config file
     //! switch back to src/blmake.lua for testing
-    if (luaL_loadfile(L, "src/blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
+    if (luaL_loadfile(L, "blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
         std::cerr << "Failed to load config: " << lua_tostring(L, -1) << std::endl;
         return 1;
     }
