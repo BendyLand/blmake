@@ -322,7 +322,7 @@ std::string perform_post_build_path_extraction(lua_State* L, const char* path)
                 const char* key = lua_tostring(L, -2);
                 if (strcmp(key, "post_build") == 0) {
                     if (lua_isstring(L, -1)) {
-                        result = lua_tostring(L, -1);
+                        result += lua_tostring(L, -1);
                     }
                 } 
             }

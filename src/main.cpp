@@ -60,10 +60,16 @@ int main(int argc, char** argv)
         }
     }
     else {
+    #if OS_UNIX_LIKE_DEFINED
         std::string command = handle_command_construction(L);
         std::cout << command << std::endl << std::endl;
         std::pair<int, std::string> err = OS::run_command(command);
         std::cout << "Compiled successfully!\n" << std::endl;
+    #else 
+        char* temp_args[2] = {"", "premake"};
+        size_t err = handle_cl_args(2, temp_args, L);
+        check_error_fatal((int)err, "Error handling command line arguments.");
+    #endif
     }
     // Handle post-build scripts
     if (check_post_build(L)) run_post_build_script(L);
