@@ -50,7 +50,7 @@ namespace Cmake
         return contents;
     }
 
-    size_t handle_template_generation(int argc, char** argv, lua_State* L)
+    size_t handle_template_generation(lua_State* L)
     {
         std::string contents = generate_cmake_build(L);
         size_t err = write_string_to_file("./CMakeLists.txt", contents);
@@ -388,20 +388,20 @@ size_t handle_cl_args(int argc, char** argv, lua_State* L)
     }
     else if (std::string(argv[1]) == "gen") {
         if (std::string(argv[2]) == "premake") {
-            size_t err = Premake::handle_template_generation(argc, argv, L);
+            size_t err = Premake::handle_template_generation(L);
             return err;
         }
         else {
-            size_t err = Cmake::handle_template_generation(argc, argv, L);
+            size_t err = Cmake::handle_template_generation(L);
             return err;
         }
     }
     else if (std::string(argv[1]) == "premake") {
-        size_t err = Premake::handle_template_generation(argc, argv, L);
+        size_t err = Premake::handle_template_generation(L);
         return err;
     }
     else if (std::string(argv[1]) == "cmake") {
-        size_t err = Cmake::handle_template_generation(argc, argv, L);
+        size_t err = Cmake::handle_template_generation(L);
         return err;
     }
     return 1;
@@ -441,7 +441,7 @@ namespace Premake
         return result;
     }
 
-    size_t handle_template_generation(int argc, char** argv, lua_State* L)
+    size_t handle_template_generation(lua_State* L)
     {
         std::string contents = generate_premake_build(L);
         contents = populate_premake_template(L, contents);

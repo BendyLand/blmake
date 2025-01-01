@@ -13,7 +13,7 @@ namespace Cmake
 {
     std::string get_cmake_contents(lua_State* L);
     std::string generate_cmake_build(lua_State* L);
-    size_t handle_template_generation(int argc, char** argv, lua_State* L);
+    size_t handle_template_generation(lua_State* L);
     std::string populate_cmake_template(lua_State* L, const std::string& contents);
     std::string populate_simple_build_cmake_template(lua_State* L, const std::string& contents);
     std::string populate_tiny_build_cmake_template(lua_State* L, const std::string& contents);
@@ -27,7 +27,7 @@ namespace Cmake
 
 namespace Premake
 {
-    size_t handle_template_generation(int argc, char** argv, lua_State* L);
+    size_t handle_template_generation(lua_State* L);
     std::string generate_premake_build(lua_State* L);
     std::string get_premake_contents(lua_State* L);
     std::string populate_premake_template(lua_State* L, const std::string& contents);

@@ -4,16 +4,15 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/bin/",
-                "/usr/include/lua5.2",
-                "/usr/include/lua5.3"
+                "/usr/local/include"
             ],
             "defines": [],
             "macFrameworkPath": [
                 "/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks"
             ],
-            "compilerPath": "/usr/bin/g++",
-            "intelliSenseMode": "macos-clang-arm64"
+            "compilerPath": null,
+            "intelliSenseMode": "macos-clang-arm64",
+            "cppStandard": "c++20"
         }
     ],
     "version": 4
