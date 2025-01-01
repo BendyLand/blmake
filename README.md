@@ -1,12 +1,12 @@
 # blmake
 
-*This project is in a somewhat early stage as of Oct. 31, 2024. Functionality may be unpredictable, but basic builds should actually work on Unix-like systems. However, as the tool is still being built, there is no usage guide yet.*
-
 A simple and straightforward build tool for C/C++!
 
 ## About
 
-`blmake` is the third and final project in my series of build tools. The other two (`blrun` and `blbld`), are meant for smaller projects in various languages, while blmake is designed for larger, more complex projects primarily in C/C++. Although blmake has a steeper learning curve, it offers more functionality for situations where the other tools fall short, yet is still far simpler than traditional build tools. Here is a quick overview of all three tools:
+`blmake` is the third and final project in my series of build tools. The other two (`blrun` and `blbld`), are meant for smaller projects in various languages, while blmake is designed for larger, more complex projects primarily in C/C++. Although blmake has a steeper learning curve, it offers more functionality for situations where the other tools fall short, yet is still far simpler than traditional build tools. 
+*Note:* These tools are most stable on MacOS, as that is what they are developed on. I will attempt to keep them working on Windows and Linux as well, but behavior may be unpredictable at times, and may not even work at all. Please use with caution.
+Here is a quick overview of all three tools:
  - `blrun`: 
      - The smallest of the build tools. 
      - Use for small compiled projects that don't include external dependencies. 
@@ -31,4 +31,5 @@ A simple and straightforward build tool for C/C++!
        - The command to generate the watcher directory is `blmake watch`.
        - The build tool will automatically run incremental builds if it detects the presence of a watcher directory.
        - The file watcher depends on a file it generates called 'prev.json'. If the data kept in this file becomes corrupted, it will no longer function properly. To reset 'prev.json', run `blbld watch clean`.
-     - *Note: The command `blmake` is not available by default on your system. You will need to build the project, rename the binary, and give it executable permissions to use it in this way.*
+     - *Note:* The command `blmake` is not available by default on your system. You will need to build the project, rename the binary, and give it executable permissions to use it in this way.
+	
