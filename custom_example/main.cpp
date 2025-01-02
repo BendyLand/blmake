@@ -9,7 +9,6 @@ int main()
     cout << "Hello old new test!" << endl;
     string test1 = "test";
 
-
     string test2 = "#include <stdio.h>";
     string test3 = "#define None 0";
     string test4 = "#include \"utils.h\"";

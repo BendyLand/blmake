@@ -1,6 +1,8 @@
 # blmake
 
-A simple and straightforward build tool for C/C++!
+A straightforward build tool for C/C++!
+
+**Note:** This tool mainly works on Unix-like systems. I will try to build in functionality for Windows, but since it is more common to compile via IDE on Windows, the behavior will likely be limited to generating build files.
 
 ## About
 

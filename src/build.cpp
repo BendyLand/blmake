@@ -178,8 +178,6 @@ std::string construct_full_build_command(lua_State* L)
     lua_pop(L, 1);
     std::string temp_cmd = get_lua_table_with_cmds_as_str(L, "preproc_opts", "-D");
     if (!temp_cmd.empty()) command += " " + temp_cmd;
-    temp_cmd = get_lua_table_as_str(L, "preproc_opts");
-    if (!temp_cmd.empty()) command += " " + temp_cmd;
     temp_cmd = get_lua_table_as_str(L, "lang_exts");
     if (!temp_cmd.empty()) command += " " + temp_cmd;
     temp_cmd = get_lua_str(L, "optimization");
