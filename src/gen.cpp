@@ -821,8 +821,8 @@ namespace Watcher
 {
     size_t generate_watcher_structure(lua_State* L)
     {
-        std::string watcher_binary = (char*)src_watcher_watcher;
-        std::string prev_json = reinterpret_cast<const char*>(src_watcher_prev_json);
+        std::string watcher_binary = (char*)watcher_watcher;
+        std::string prev_json = reinterpret_cast<const char*>(watcher_prev_json);
         std::string src_path = "";
         std::string config_type = get_blmake_config_type(L);
         lua_getglobal(L, config_type.c_str());
@@ -838,7 +838,7 @@ namespace Watcher
         src_path += "watcher";
         std::filesystem::create_directory(src_path);
     #if OS_UNIX_LIKE_DEFINED
-        size_t err1 = write_binary_data_to_file(src_path + "/watcher", src_watcher_watcher, src_watcher_watcher_len);
+        size_t err1 = write_binary_data_to_file(src_path + "/watcher", watcher_watcher, watcher_watcher_len);
         std::string permissions_cmd = "chmod +x " + src_path + "/watcher";
         OS::run_command(permissions_cmd);
     #else

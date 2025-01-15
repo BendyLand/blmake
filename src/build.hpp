@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <array>
+#include <filesystem>
 #include "utils.hpp"
 #include "os.hpp"
 

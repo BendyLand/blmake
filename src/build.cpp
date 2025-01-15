@@ -1,5 +1,9 @@
 #include "build.hpp"
 
+#if OS_UNIX_LIKE_DEFINED
+namespace fs = std::filesystem;
+#endif
+
 void run_pre_build_script(lua_State* L)
 {
     std::string pre_build_path = extract_pre_build_path(L);
@@ -98,9 +102,12 @@ std::vector<std::string> construct_incremental_full_build_commands(lua_State* L)
     lua_pop(L, 1);
     command += " -c ";
     lua_getfield(L, -1, "files");
-    std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    std::string watcher_cmd = get_lua_str(L, "src_dir");
+    if (!watcher_cmd.empty()) watcher_cmd += "/";
+    watcher_cmd += "watcher/watcher " + prefix;
+    if (watcher_cmd.ends_with(" ")) watcher_cmd += ".";
     OS::run_command(watcher_cmd);
-    std::string check_file = read_file("src/watcher/recompile_list.txt");
+    fs::path check_file = fs::path(read_file(fs::path(get_lua_str(L, "src/dir")) / "watcher/recompile_list.txt"));
     std::vector<std::string> file_list; 
     std::vector<std::string> all_files; 
     if (lua_istable(L, -1)) {
@@ -108,7 +115,7 @@ std::vector<std::string> construct_incremental_full_build_commands(lua_State* L)
         std::string files = get_table_commands(L, prefix);
         sanitize(files);
         all_files = split(files, " ");
-        files = filter_files(files, check_file);
+        files = filter_files(files, check_file.string());
         file_list = filter_file_list(split(files, " "));
         if (file_list.size() == 0) return result;
         for (std::string file : file_list) {

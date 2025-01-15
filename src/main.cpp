@@ -6,7 +6,9 @@
 // To compile on WSL
 // g++ -std=c++20 -I/usr/include/lua5.3 -L/usr/lib/x86_64-linux-gnu src/main.cpp src/utils.cpp src/build.cpp src/os.cpp src/gen.cpp -llua5.3 -o main
 
+#if OS_UNIX_LIKE_DEFINED
 namespace fs = std::filesystem;
+#endif
 
 int main(int argc, char** argv)
 {
@@ -28,7 +30,7 @@ int main(int argc, char** argv)
 
     // Load and run the Lua config file
     //! switch back to src/blmake.lua for testing
-    if (luaL_loadfile(L, "src/blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
+    if (luaL_loadfile(L, "blmake.lua") != LUA_OK || lua_pcall(L, 0, 0, 0)) {
         std::cerr << "Failed to load config: " << lua_tostring(L, -1) << std::endl;
         return 1;
     }
@@ -45,7 +47,7 @@ int main(int argc, char** argv)
 
     // Construct and run compilation command
 #if OS_UNIX_LIKE_DEFINED
-    fs::path path = get_config_value(L, "src_dir") + "/watcher";
+    fs::path path = get_config_value(L, "src_dir") / fs::path("watcher");
     if (fs::is_directory(path)) {
         std::vector<std::string> commands = handle_incremental_command_construction(L);
         if (commands.size() > 0) {
@@ -56,6 +58,7 @@ int main(int argc, char** argv)
             for (std::string command : commands) {
                 std::pair<int, std::string> err = OS::run_command(command);
                 if (check_error_passive(err.first, err.second)) return 1;
+
             }
             std::string out_dir = get_lua_str(L, "out_dir");
             std::string output = get_lua_str(L, "output");
