@@ -4,7 +4,7 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/include"
+                "/usr/include/lua5.3"
             ],
             "defines": [],
             "macFrameworkPath": [
@@ -13,6 +13,15 @@
             "compilerPath": null,
             "intelliSenseMode": "macos-clang-arm64",
             "cppStandard": "c++20"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include/lua5.3"
+            ],
+            "defines": [],
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

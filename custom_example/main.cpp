@@ -25,6 +25,7 @@ int main()
     cout << "Result: " << res3 << endl;
     cout << "Result: " << res4 << endl;
     cout << "Result: " << res5 << endl;
+    cout << "This is a new line" << endl;
 
     return 0;
 }

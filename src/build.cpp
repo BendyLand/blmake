@@ -159,7 +159,10 @@ std::vector<std::string> construct_incremental_full_build_commands(lua_State* L)
     temp_cmd = get_lua_str(L, "out_dir");
     if (!temp_cmd.empty()) out_dir += "-o " + temp_cmd + "/";
     temp_cmd = get_lua_str(L, "output");
-    if (!temp_cmd.empty()) out_dir += temp_cmd;
+    if (!temp_cmd.empty()) {
+        if (!out_dir.empty()) out_dir += temp_cmd; 
+        else out_dir += "-o " + temp_cmd;
+    }
     link_command += " " + out_dir;
     result.emplace_back(link_command);
     return result;
@@ -272,6 +275,7 @@ std::vector<std::string> construct_incremental_build_commands(lua_State* L)
     command += " -c ";
     lua_getfield(L, -1, "files");
     std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    if (watcher_cmd.ends_with(" ")) watcher_cmd += ".";
     OS::run_command(watcher_cmd);
     std::string check_file = read_file("src/watcher/recompile_list.txt");
     std::vector<std::string> file_list; 
@@ -319,7 +323,10 @@ std::vector<std::string> construct_incremental_build_commands(lua_State* L)
     temp_cmd = get_lua_str(L, "out_dir");
     if (!temp_cmd.empty()) out_dir += "-o " + temp_cmd + "/";
     temp_cmd = get_lua_str(L, "output");
-    if (!temp_cmd.empty()) out_dir += temp_cmd;
+    if (!temp_cmd.empty()) {
+        if (!out_dir.empty()) out_dir += temp_cmd; 
+        else out_dir += "-o " + temp_cmd;
+    }
     link_command += " " + out_dir;
     result.emplace_back(link_command);
     return result;
@@ -421,6 +428,7 @@ std::vector<std::string> construct_incremental_simple_build_commands(lua_State* 
     command += " -c ";
     lua_getfield(L, -1, "files");
     std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    if (watcher_cmd.ends_with(" ")) watcher_cmd += ".";
     OS::run_command(watcher_cmd);
     std::string check_file = read_file("src/watcher/recompile_list.txt");
     std::vector<std::string> file_list; 
@@ -535,6 +543,7 @@ std::vector<std::string> construct_incremental_tiny_build_commands(lua_State* L)
     command += " -c ";
     lua_getfield(L, -1, "files");
     std::string watcher_cmd = "src/watcher/watcher ";
+    if (watcher_cmd.ends_with(" ")) watcher_cmd += ".";
     OS::run_command(watcher_cmd);
     std::string check_file = read_file("src/watcher/recompile_list.txt");
     std::vector<std::string> file_list; 
@@ -650,6 +659,7 @@ std::vector<std::string> construct_incremental_test_build_commands(lua_State* L)
     command += " -c ";
     lua_getfield(L, -1, "files");
     std::string watcher_cmd = "src/watcher/watcher " + prefix;
+    if (watcher_cmd.ends_with(" ")) watcher_cmd += ".";
     OS::run_command(watcher_cmd);
     std::string check_file = read_file("src/watcher/recompile_list.txt");
     std::vector<std::string> file_list; 
@@ -801,10 +811,10 @@ std::vector<std::string> handle_incremental_command_construction(lua_State* L)
     else if (check_table(L, "Test_build")) {
         commands = construct_incremental_test_build_commands(L);
     }
-	else {
+	  else {
         std::cerr << "No valid config tables found." << std::endl;
         exit(1);
-	}
+	  }
     if (commands.size() == 0) return {};
     return commands;
 }

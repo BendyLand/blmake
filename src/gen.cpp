@@ -12,7 +12,11 @@
 #include "templates/cmake/full_build_cmake.h"
 #include "templates/cmake/simple_build_cmake.h"
 #include "templates/cmake/tiny_build_cmake.h"
-#include "watcher_config.hpp"
+#if defined(OS_MACOS)
+#include "watcher_config_macos.hpp"
+#elif defined(OS_LINUX)
+#include "watcher_config_linux.hpp"
+#endif
 
 namespace Cmake 
 {
